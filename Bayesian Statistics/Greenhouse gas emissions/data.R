@@ -24,3 +24,20 @@ industrial_prod <- read_excel(paste0(files[4,1]))
 oil_imports <- read_excel(paste0(files[5,1]), sheet = 'Sheet 1', range = "A9:AI229")
 oil_stock <- read_excel(paste0(files[6,1]), sheet = 'Sheet 1', range = "A10:AK133")
 
+#Air emissions
+air_emissions <- air_emissions[-1,]
+colnames(air_emissions)[1] <- "Time"
+str(air_emissions)
+
+#Gas imports
+gas_imports <- gas_imports[-1,]
+colnames(gas_imports)[1] <- "Time"
+
+
+str(gas_imports)
+
+
+#Create dataframe
+data <- air_emissions %>% select(Time, Italy)
+data <- data %>% rename("air.emissions" = Italy)
+data <- data %>% mutate(country = "Italy")
