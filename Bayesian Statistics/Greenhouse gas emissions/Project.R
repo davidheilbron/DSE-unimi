@@ -232,20 +232,6 @@ plot(GIR, main = "Generalised Impulse Response", xlab = "Period", ylab = "Respon
 
 #############################################################################
 
-### BAYESIAN ATTEMPT #2
-y <- final %>% select(net_greenhouse_pc)
-x <- final %>% select(industrial_production, naturalgas_imports)
-
-
-
-
-#############################################################################
-
-
-
-
-
-
 #Test for stationarity - ADF test
 #H0: time series is not stationary
 adf.test(data$net_greenhouse_pc) #dependent variable is not stationary
