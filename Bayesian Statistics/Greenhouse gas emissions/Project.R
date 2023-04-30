@@ -122,12 +122,21 @@ par(mfrow = c(1,1))
 ########################################################################
 #BAYESIAN ATTEMPT #1
 
-bayes <- data %>% select(Year, net_greenhouse_pc, industrial_production, energy_imp_dep,
-                         naturalgas_imports, total_energy_supply, gross_electricity_production)
+bayes <- data %>% select(Year, net_greenhouse_pc, industrial_production,
+                         naturalgas_imports, total_energy_supply)
 
+net_greenhouse_pc <- diff(bayes$net_greenhouse_pc, differences = 2)
+industrial_production <- diff(bayes$industrial_production, differences = 2)
+naturalgas_imports <- diff(bayes$naturalgas_imports, differences = 2)
+total_energy_supply <- diff(bayes$total_energy_supply, differences = 2)
+
+bayes <- as.data.frame(cbind(net_greenhouse_pc, industrial_production,
+                         naturalgas_imports, total_energy_supply))
 
 head(bayes) #check head
-bayes_sca <- as.data.frame(apply(bayes, MARGIN = 2, scale)) #Apply second differences
+bayes_sca <- as.data.frame(apply(bayes, MARGIN = 2, scale)) #Apply scaling
+
+write.csv(bayes_sca, 'bayes_data.csv')
 plot(bayes_sca)
 
 bayes_ts <- as.ts(bayes_sca)

@@ -18,7 +18,6 @@ library(Matrix)
 
 #Load data
 bayes_data <- read.csv("bayes_data.csv")
-bayes_data <- apply(bayes_data, MARGIN = 2, FUN = scale)
 set.seed(100)
 
 # Set the lag of the VAR
@@ -85,17 +84,9 @@ store_yIR  <- matrix(0, nrow = n_hz, ncol = (n + m))
 
 # Initialize the chain 
 beta <- solve(t(X) %*% X) %*% t(X) %*% y
-e    <- matrix(y - X %*% beta, n, T)
+e    <- matrix(y - X %*% beta, (n+m), T)
 Sig  <- t(e) %*% e/T
 iSig <- solve(Sig)
-class(X)
-
-
-# Initialize the chain 
-beta <- matrix(nrow=13, ncol=1, data=1)
-e    <- matrix(y - X %*% beta, n, T)
-Sig  <- t(e) %*% e/T
-iSig <- matrix(nrow=13, ncol=27, data= rnorm(351, mean=1, sd=1))
 
 ## Gibbs sampler 
 tic <- Sys.time()
