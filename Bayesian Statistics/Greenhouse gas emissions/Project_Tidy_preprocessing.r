@@ -129,6 +129,18 @@ par(mfrow = c(1,1))
 
 #############################################################################
 
+#Box Cox transformation for Greenhouse gas emissions
+lambda_1 = BoxCox.lambda(data$net_greenhouse_pc)
+plot(data$net_greenhouse_pc, type="l")
+lambda_1
+plot.ts(BoxCox(data$net_greenhouse_pc, lambda = lambda_1))
+greenhouse_bc <- BoxCox(data$net_greenhouse_pc, lambda = lambda_1)
+plot.ts(greenhouse_bc)
+adf.test(greenhouse_bc)
+greenhouse_ln <- log(data$net_greenhouse_pc)
+plot.ts(greenhouse_ln)
+
+
 #Test for stationarity - ADF test
 #H0: time series is not stationary
 adf.test(data$net_greenhouse_pc) #dependent variable is not stationary
@@ -142,7 +154,7 @@ plot(net_greenhouse_pc_2, type = "l") #visual check
 
 str(data)
 #Scale enviromental taxes and stationarity check
-data <- data %>% mutate_at(c('environmental_taxes'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('environmental_taxes'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -151,8 +163,8 @@ ndiffs(data$environmental_taxes) #how many diffs should we take?
 environm_taxes_1 <- diff(data$environmental_taxes, differences = 1) #first differentiation
 adf.test(environm_taxes_1) #Still not stationary
 environm_taxes_2 <- diff(environm_taxes_1, differences = 1) #second differentiation
-adf.test(environm_taxes) ##Still not stationary
-plot(environm_taxes, type="l") #visual check
+adf.test(environm_taxes_2) ##Still not stationary
+plot(environm_taxes_2, type="l") #visual check
 
 #KPss test
 kpss.test(data$environmental_taxes)
@@ -174,12 +186,12 @@ ndiffs(environm_bc) #how many diffs should we take?
 environm_taxes_1b <- diff(environm_bc, differences = 1) #first differentiation
 adf.test(environm_taxes_1b) #Still not stationary
 environm_taxes_2b <- diff(environm_taxes_1b, differences = 1) #second differentiation
-adf.test(environm_taxes) ##Still not stationary
-plot(environm_taxes, type="l") #visual check
+adf.test(environm_taxes_2b) ##Still not stationary
+plot(environm_taxes_2b, type="l") #visual check
 
 
 #Scale and stationarity test GDP
-data <- data %>% mutate_at(c('GDP pc'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('GDP pc'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -215,13 +227,13 @@ ndiffs(GDP_bc) #how many diffs should we take?
 GDP_bc_1 <- diff(GDP_bc, differences = 1) #first differentiation
 adf.test(GDP_bc_1) #Still not stationary
 GDP_bc_2 <- diff(GDP_bc_1, differences = 1) #second differentiation
-adf.test(environm_taxes) ##Still not stationary
-plot(environm_taxes, type="l") #visual check
+adf.test(GDP_bc_2) ##Still not stationary
+plot(GDP_bc_2, type="l") #visual check
 
 
 
 #Scale and stationarity test for industrial_production
-data <- data %>% mutate_at(c('industrial_production'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('industrial_production'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -261,7 +273,7 @@ plot(industrial_production_bc_2, type="l") #visual check
 
 
 #Scale and stationarity test for energy_imp_dep
-data <- data %>% mutate_at(c('energy_imp_dep'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('energy_imp_dep'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -301,7 +313,7 @@ plot(energy_imp_dep_bc_2, type="l") #visual check
 
 
 #Scale and stationarity test for naturalgas_imports 
-data <- data %>% mutate_at(c('naturalgas_imports'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('naturalgas_imports'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -340,7 +352,7 @@ plot(naturalgas_imports_bc_2, type="l") #visual check
 
 
 #Scale and stationarity test for oil_imports 
-data <- data %>% mutate_at(c('oil_imports'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('oil_imports'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -381,7 +393,7 @@ plot(oil_imports_bc_2, type="l") #visual check
 
 
 #Scale and stationarity test for total_energy_supply 
-data <- data %>% mutate_at(c('total_energy_supply'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('total_energy_supply'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -420,7 +432,7 @@ plot(total_energy_bc_2, type="l") #visual check
 
 
 #Scale and stationarity test for gross_electricity_production 
-data <- data %>% mutate_at(c('gross_electricity_production'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('gross_electricity_production'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -455,7 +467,7 @@ plot(gross_electricity_prod_bc_2, type="l") #visual check
 
 
 #Scale and stationarity test for Share_of_land_under_permanent_crops 
-data <- data %>% mutate_at(c('Share_of_land_under_permanent_crops'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('Share_of_land_under_permanent_crops'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -490,7 +502,7 @@ plot(Share_land_crops_bc_1, type="l") #visual check
 
 
 #Scale and stationarity test for Area_harvested_Rice
-data <- data %>% mutate_at(c('Area_harvested_Rice'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('Area_harvested_Rice'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -524,7 +536,7 @@ plot(Area_harvested_rice_bc_1, type="l") #visual check
 
 
 #Scale and stationarity test for Fertilizer_used_per_area_of_cropland
-data <- data %>% mutate_at(c('Fertilizer_used_per_area_of_cropland'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('Fertilizer_used_per_area_of_cropland'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -564,7 +576,7 @@ plot(Fertilizer_bc_2, type="l")
 
 
 #Scale and stationarity test for Share_in_land_area_Forest_Land
-data <- data %>% mutate_at(c('Share_in_land_area_Forest_Land'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('Share_in_land_area_Forest_Land'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -599,7 +611,7 @@ plot(Forest_bc_2, type="l")
 
 
 #Scale and stationarity test for Rail_tracks_KM
-data <- data %>% mutate_at(c('Rail_tracks_KM'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('Rail_tracks_KM'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -639,7 +651,7 @@ plot(Fertilizer_bc_2, type="l")
 
 
 #Scale and stationarity test for Length_of_motorways
-data <- data %>% mutate_at(c('Length_of_motorways'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('Length_of_motorways'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -679,7 +691,7 @@ plot(motorways_bc_2, type="l")
 
 
 #Scale and stationarity test for Number_of_motorcycle
-data <- data %>% mutate_at(c('Number_of_motorcycle'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('Number_of_motorcycle'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -720,7 +732,7 @@ plot(Number_mot_bc_2, type="l")
 
 
 #Scale and stationarity test for Total_freight_loaded_and_unloaded
-data <- data %>% mutate_at(c('Total_freight_loaded_and_unloaded'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('Total_freight_loaded_and_unloaded'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -762,7 +774,7 @@ plot(Freight_bc_2, type="l")
 
 
 #Scale and stationarity test for livestock_heads
-data <- data %>% mutate_at(c('livestock_heads'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('livestock_heads'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -802,7 +814,7 @@ plot(livestock_bc_2, type="l")
 
 
 #Scale and stationarity test for res_capacity 
-data <- data %>% mutate_at(c('res_capacity'), ~(scale(.) %>% as.vector))
+#data <- data %>% mutate_at(c('res_capacity'), ~(scale(.) %>% as.vector))
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
@@ -866,6 +878,20 @@ write.csv(bayes_7, 'bayes_data_7.csv')
 bayes_8 <- cbind(net_greenhouse_pc_1, Length_of_motorways_1, Total_freight_loaded_and_unloaded_1)
 write.csv(bayes_8, 'bayes_data_8.csv')
 
+ln_data <- apply(complete_data, MARGIN=2, FUN=log)
+ln_data <- as.data.frame(ln_data)
+bayes_9 <- as.data.frame(
+  cbind(ln_data$net_greenhouse_pc, ln_data$environmental_taxes, ln_data$Area_harvested_Rice))
+colnames(bayes_9) <- c("greenhouse", "environmental_taxes", "harvested_rice")
+write.csv(bayes_9, 'bayes_data_9.csv')
 
+bayes_10 <- as.data.frame(cbind(ln_data$net_greenhouse_pc, ln_data$total_energy_supply, ln_data$Length_of_motorways))
+colnames(bayes_10) <- c("greenhouse", "energy_supply", "motorways")
+write.csv(bayes_10, 'bayes_data_10.csv')
+
+
+bayes_11 <- data.frame(cbind(greenhouse_bc, environm_bc, Area_harvested_rice_bc ))
+colnames(bayes_11) <- c("greenhouse", "environmental_taxes", "harvested_rice")
+write.csv(bayes_11, 'bayes_data_11.csv')
 
 

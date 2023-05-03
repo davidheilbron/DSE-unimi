@@ -33,12 +33,15 @@ library(vars)
 First model to be tested: Net greenhouse gas emissions I(2), Industrial production I(2), and Energy imports dependency I(2) \## Check data
 
 ```{r check data}
-bayes_8 <- read.csv("bayes_data_8.csv")
-bayes <- bayes_8[,-1]
+bayes <- read.csv("bayes_data_8.csv")
+bayes <- bayes[,-1]
 head(bayes) #check head
 bayes_ts <- as.ts(bayes)
 plot(bayes_ts)
 summary(bayes_ts)
+```
+
+```{}
 ```
 
 ## Model selection
