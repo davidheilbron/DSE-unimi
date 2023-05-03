@@ -27,7 +27,7 @@ data$Share_of_land_under_permanent_crops <- as.numeric(data$Share_of_land_under_
 data$Fertilizer_used_per_area_of_cropland <- as.numeric(data$Fertilizer_used_per_area_of_cropland)
 data$Share_in_land_area_Forest_Land <- as.numeric(data$Share_in_land_area_Forest_Land)
 str(data)
-raw <- data
+
 
 #Data imputation
 data$Rail_tracks_KM <- na_interpolation(data$Rail_tracks_KM, option = 'spline')
@@ -43,11 +43,6 @@ data %>% ggplot(aes(Year, Chicken_heads)) + geom_line()
 data %>% ggplot(aes(Year, Turkeys_heads)) + geom_line()
 data$Turkeys_heads <- na_interpolation(data$Turkeys_heads, option = 'spline')
 data %>% ggplot(aes(Year, Turkeys_heads)) + geom_line()
-
-imp <- data
-
-str(data)
-summary(data)
 
 #Graphs
 par(mfrow = c(2, 2))
@@ -108,7 +103,6 @@ data <- data %>%
 #            wind_capacity, solar_capacity, biofuels_capacity,
 #            biogas_capacity, waste_capacity))
 
-str(data)
 par(mfrow = c(1, 2))
 plot(x = data$Year, y = data$livestock_heads, type = "l" )
 plot(x = data$Year, y = data$res_capacity, type = "l")
@@ -123,6 +117,11 @@ complete_data <- data %>% dplyr::select(Year, net_greenhouse_pc, environmental_t
 
 #Scale data
 #data <- data %>% mutate_at(c('net_greenhouse_pc'), ~(scale(.) %>% as.vector))
+data <- apply(data, MARGIN = 2, FUN = scale)
+data <- data.frame(data)
+
+complete_data <- apply(complete_data, MARGIN = 2, FUN = scale)
+complete_data <- data.frame(complete_data)
 
 par(mfrow = c(1,1))
 
@@ -195,9 +194,9 @@ plot(environm_taxes_2b, type="l") #visual check
 
 #Test for stationarity - ADF test
 #H0: time series is not stationary
-adf.test(data$`GDP pc`) #independent variable is not stationary
+adf.test(data$GDP.pc) #independent variable is not stationary
 ndiffs(data$`GDP pc`) #how many diffs should we take?
-GDP_pc_1 <- diff(data$`GDP pc`, differences = 1) #first differentiation
+GDP_pc_1 <- diff(data$GDP.pc, differences = 1) #first differentiation
 adf.test(GDP_pc_1) #Still not stationary
 GDP_pc_2 <- diff(GDP_pc_1, differences = 1) #second differentiation
 adf.test(GDP_pc_2) ##Still not stationary
@@ -215,11 +214,11 @@ pp.test(GDP_pc_1) ##Stationary
 
 
 #BoxCox
-lambda_1=BoxCox.lambda(data$`GDP pc`)
-plot(data$`GDP pc`, type="l")
+lambda_1=BoxCox.lambda(data$GDP.pc)
+plot(data$GDP.pc, type="l")
 lambda_1
-plot.ts(BoxCox(data$`GDP pc`, lambda = lambda_1))
-GDP_bc<-BoxCox(data$`GDP pc`, lambda = lambda_1)
+plot.ts(BoxCox(data$GDP.pc, lambda = lambda_1))
+GDP_bc<-BoxCox(data$GDP.pc, lambda = lambda_1)
 plot.ts(GDP_bc)
 GDP_bc=scale(GDP_bc)
 adf.test(GDP_bc)
@@ -255,7 +254,7 @@ pp.test(industrial_production_1) ##Stationary
 
 
 #BoxCox
-lambda_1=BoxCox.lambda(data$environmental_taxes)
+lambda_1=BoxCox.lambda(data$industrial_production)
 plot(data$`GDP pc`, type="l")
 lambda_1
 plot.ts(BoxCox(data$industrial_production, lambda = lambda_1))
@@ -441,6 +440,10 @@ ndiffs(data$gross_electricity_production) #how many diffs should we take?
 gross_electricity_production_2 <- diff(data$gross_electricity_production , differences = 2) #second differentiation
 adf.test(gross_electricity_production_2) #Stationary
 plot(gross_electricity_production_2 , type="l") #visual check
+gross_electricity_prod_1 <- diff(data$gross_electricity_production, differences = 1) #First differentiation
+
+
+
 
 #KPss test
 kpss.test(data$gross_electricity_production) #not stationary
@@ -866,7 +869,7 @@ write.csv(bayes_4, 'bayes_data_4.csv')
 
 #I(1) features datasets
 bayes_5 <- cbind(net_greenhouse_pc_1, Share_of_land_under_permanent_crops_1, Area_harvested_Rice_1)
-write.csv(bayes_5, 'bayes_data_5.csv')
+write.csv(bayes_5, 'bayes_data_5.csv') #success
 
 
 bayes_6 <- cbind(net_greenhouse_pc_1, livestock_heads_1, Area_harvested_Rice_1)
@@ -878,8 +881,8 @@ write.csv(bayes_7, 'bayes_data_7.csv')
 bayes_8 <- cbind(net_greenhouse_pc_1, Length_of_motorways_1, Total_freight_loaded_and_unloaded_1)
 write.csv(bayes_8, 'bayes_data_8.csv')
 
-ln_data <- apply(complete_data, MARGIN=2, FUN=log)
-ln_data <- as.data.frame(ln_data)
+#ln_data <- apply(complete_data, MARGIN=2, FUN=log)
+#ln_data <- as.data.frame(ln_data)
 bayes_9 <- as.data.frame(
   cbind(ln_data$net_greenhouse_pc, ln_data$environmental_taxes, ln_data$Area_harvested_Rice))
 colnames(bayes_9) <- c("greenhouse", "environmental_taxes", "harvested_rice")
@@ -894,4 +897,37 @@ bayes_11 <- data.frame(cbind(greenhouse_bc, environm_bc, Area_harvested_rice_bc 
 colnames(bayes_11) <- c("greenhouse", "environmental_taxes", "harvested_rice")
 write.csv(bayes_11, 'bayes_data_11.csv')
 
+ln_data <- data.frame(read_excel("data.xlsx", sheet = 'Data'))
+#data$Rail_tracks_KM <- na_interpolation(data$Rail_tracks_KM, option = 'spline')
+#data %>% ggplot(aes(Year, Rail_tracks_KM)) + geom_line()
 
+ln_data$Total_freight_loaded_and_unloaded <- na_interpolation(ln_data$Total_freight_loaded_and_unloaded, option = 'spline')
+
+bayes_12 <- data.frame(cbind(ln_data$net_greenhouse_pc, ln_data$Total_freight_loaded_and_unloaded, ln_data$Number_of_motorcycle))
+bayes_12 <- apply(bayes_12, MARGIN=2, FUN=log)
+bayes_12 <- apply(bayes_12, MARGIN=2, FUN=scale)
+colnames(bayes_12) <- c("greenhouse", "Total_freight_loaded_and_unloaded", "Number_of_motorcycle")
+write.csv(bayes_12, 'bayes_data_12.csv')
+
+bayes_13 <- cbind(net_greenhouse_pc_1, Rail_tracks_KM_1, Number_of_motorcycle_1)
+write.csv(bayes_13, 'bayes_data_13.csv')
+
+bayes_14 <- cbind(net_greenhouse_pc_1, environm_taxes_1, energy_imp_dep_1)
+write.csv(bayes_14, 'bayes_data_14.csv')
+
+bayes_15 <- cbind(ln_data$net_greenhouse_pc, ln_data$environmental_taxes, ln_data$energy_imp_dep)
+bayes_15 <- apply(bayes_15, MARGIN=2, FUN=log)
+bayes_15 <- apply(bayes_15, MARGIN=2, FUN=scale)
+colnames(bayes_15) <- c("net_greenhouse_pc", "environmental_taxes", "energy_imp_dep")
+write.csv(bayes_15, 'bayes_data_15.csv')
+
+bayes_16 <- cbind(net_greenhouse_pc_1, GDP_pc_1, industrial_production_1)
+write.csv(bayes_16, 'bayes_data_16.csv')
+
+bayes_17 <- cbind(net_greenhouse_pc_1, naturalgas_imports_1, oil_imports_1)
+write.csv(bayes_17, 'bayes_data_17.csv')
+
+bayes_18 <- cbind(net_greenhouse_pc_1, total_energy_supply_1, gross_electricity_prod_1 )
+write.csv(bayes_18, 'bayes_data_18.csv')
+
+bayes_19 <- cbind(net_greenhouse_pc_1, Fertilizer_used_per_area_of_cropland_1,)
