@@ -1,6 +1,8 @@
 ---
 title: "BVAR TS model"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 date: "2023-05-01"
 ---
 
@@ -8,43 +10,237 @@ date: "2023-05-01"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Load Libraries
+## Data Preprocessing
 
 ```{r libraries}
-library(bvartools)
+#Libraries
 library(tidyverse)
 library(readxl)
-library(lubridate)
-library(zoo)
 library(xts)
 library(dplyr)
-library(data.table)
 library(imputeTS)
 library(ggplot2)
 library(MTS)
 library(tseries)
-library(forecast)
-library(bvartools)
-library(coda)
-library(spam)
 library(vars)
+library(bvartools)
+
+data <- read_excel("data.xlsx", sheet = 'Data')
 ```
 
-First model to be tested: ...
+```{r from char to num, echo=FALSE}
+data$Pigs_heads <- as.numeric(data$Pigs_heads)
+data$Head_sheep <- as.numeric(data$Head_sheep)
+data$Head_goat <- as.numeric(data$Head_goat)
+data$Share_of_land_under_permanent_crops <- as.numeric(data$Share_of_land_under_permanent_crops)
+data$Fertilizer_used_per_area_of_cropland <- as.numeric(data$Fertilizer_used_per_area_of_cropland)
+data$Share_in_land_area_Forest_Land <- as.numeric(data$Share_in_land_area_Forest_Land)
+```
 
-```{r check data}
-bayes <- read.csv("bayes_data_24.csv")
-bayes <- bayes[,-1]
-head(bayes) #check head
+```{r data imputation}
+data$Rail_tracks_KM <- na_interpolation(data$Rail_tracks_KM, option = 'spline')
+data$Total_freight_loaded_and_unloaded <- na_interpolation(data$Total_freight_loaded_and_unloaded, option = 'spline')
+data$Chicken_heads <- na_interpolation(data$Chicken_heads, option = 'spline')
+data$Turkeys_heads <- na_interpolation(data$Turkeys_heads, option = 'spline')
+```
+
+```{r merge common features}
+data <- data %>% 
+  mutate(livestock_heads = Pigs_heads + Head_sheep + Head_goat + 
+           Chicken_heads + Turkeys_heads + Cattle_heads + Buffalo_head) 
+
+data <- data %>% 
+  mutate(res_capacity = hydro_capacity + geothermal_capacity + 
+           wind_capacity + solar_capacity + biofuels_capacity + 
+           biogas_capacity + waste_capacity)
+
+data <- data %>% dplyr::select(Year, net_greenhouse_pc, environmental_taxes, `GDP pc`,
+                                 industrial_production, energy_imp_dep, naturalgas_imports,
+                                 oil_imports, total_energy_supply, gross_electricity_production,
+                                 res_capacity, livestock_heads,
+                                 Share_of_land_under_permanent_crops, Area_harvested_Rice,
+                                 Fertilizer_used_per_area_of_cropland, Share_in_land_area_Forest_Land,
+                                 Rail_tracks_KM, Length_of_motorways, Number_of_motorcycle, Total_freight_loaded_and_unloaded)
+```
+
+```{r scale data}
+data <- apply(data, MARGIN = 2, FUN = scale)
+data <- data.frame(data)
+```
+
+```{r plot data 1/5}
+par(mfrow = c(2,2))
+plot(data$net_greenhouse_pc,
+     type = 'l',
+     xlab = "Time",
+     ylab = "TON per capita - Scaled",
+     main = "Net greenhouse gases emissions")
+
+plot(data$environmental_taxes,
+     type = 'l',
+     xlab = "Time",
+     ylab = "% of GDP - Scaled",
+     main = "Environmental taxes")
+
+plot(data$GDP.pc,
+     type = 'l',
+     xlab = "Time",
+     ylab = "Constant 2010 US dollars - Scaled",
+     main = "GDP per capita")
+
+plot(data$industrial_production,
+     type = 'l',
+     xlab = "Time",
+     ylab = "Index 2015=100 - Scaled",
+     main = "Industrial production")
+
+```
+
+```{r plot data 2/5}
+par(mfrow = c(2,2))
+plot(data$energy_imp_dep,
+     type = 'l',
+     xlab = "Time",
+     ylab = "% - Scaled",
+     main = "Energy imports dependency")
+
+plot(data$naturalgas_imports,
+     type = 'l',
+     xlab = "Time",
+     ylab = "Million m^3 - Scaled",
+     main = "Natural gas imports")
+
+plot(data$oil_imports,
+     type = 'l',
+     xlab = "Time",
+     ylab = "Thousand tonnes - Scaled",
+     main = "Oil imports")
+
+plot(data$total_energy_supply,
+     type = 'l',
+     xlab = "Time",
+     ylab = "Gigawatt-hour - Scaled",
+     main = "Total energy supply")
+```
+
+```{r plot data 3/5}
+par(mfrow = c(2,2))
+plot(data$gross_electricity_production,
+     type = 'l',
+     xlab = "Time",
+     ylab = "Gigawatt-hour - Scaled - Scaled",
+     main = "Gross electricity production")
+
+plot(data$res_capacity,
+     type = 'l',
+     xlab = "Time",
+     ylab = "Megawatt - Scaled",
+     main = "Renewable Energy capacity")
+
+plot(data$livestock_heads,
+     type = 'l',
+     xlab = "Time",
+     ylab = "Thousand heads - Scaled",
+     main = "Livestock heads")
+
+plot(data$Share_of_land_under_permanent_crops,
+     type = 'l',
+     xlab = "Time",
+     ylab = "% - Scaled",
+     main = "Share of land under permanent crops")
+```
+
+```{r plot data 4/5}
+par(mfrow = c(2,2))
+plot(data$Area_harvested_Rice,
+     type = 'l',
+     xlab = "Time",
+     ylab = "Area ha - Scaled",
+     main = "Harvested rice")
+
+plot(data$Fertilizer_used_per_area_of_cropland,
+     type = 'l',
+     xlab = "Time",
+     ylab = "kg per ha - Scaled",
+     main = "Fertilizer used per ha of cropland")
+
+plot(data$Share_in_land_area_Forest_Land,
+     type = 'l',
+     xlab = "Time",
+     ylab = "% - Scaled",
+     main = "Share of forest land in total land")
+
+plot(data$Rail_tracks_KM,
+     type = 'l',
+     xlab = "Time",
+     ylab = "km - Scaled",
+     main = "Rail tracks")
+```
+
+```{r plot data 5/5}
+par(mfrow = c(1,3))
+plot(data$Length_of_motorways,
+     type = 'l',
+     xlab = "Time",
+     ylab = "km - Scaled",
+     main = "Length of motorways")
+
+plot(data$Number_of_motorcycle,
+     type = 'l',
+     xlab = "Time",
+     ylab = "Units - Scaled",
+     main = "Number of motorcycles")
+
+plot(data$Total_freight_loaded_and_unloaded,
+     type = 'l',
+     xlab = "Time",
+     ylab = "TON - Scaled",
+     main = "Total aerial freight")
+```
+
+```{r first differences}
+greenhouse_1 <- diff(data$net_greenhouse_pc, differences = 1)
+env_tax_1 <- diff(data$environmental_taxes, differences = 1)
+GDP_pc_1 <- diff(data$GDP.pc, differences = 1)
+ind_prod_1 <- diff(data$industrial_production, differences = 1)
+energy_imp_dep_1 <- diff(data$energy_imp_dep, differences = 1)
+naturalgas_imports_1  <- diff(data$naturalgas_imports , differences = 1)
+oil_imports_1  <- diff(data$oil_imports , differences = 1)
+energy_supply_1 <- diff(data$total_energy_supply , differences = 1)
+electricity_prod_1 <- diff(data$gross_electricity_production, differences = 1)
+res_capacity_1  <- diff(data$res_capacity  , differences = 1)
+livestock_heads_1 <- diff(data$livestock_heads , differences = 1)
+permanent_crops_1 <- diff(data$Share_of_land_under_permanent_crops , differences = 1)
+harvested_rice_1 <- diff(data$Area_harvested_Rice, differences = 1)
+fertilizer_1 <- diff(data$Fertilizer_used_per_area_of_cropland, differences = 1)
+forest_land_1 <- diff(data$Share_in_land_area_Forest_Land, differences = 1)
+rail_tracks_1 <- diff(data$Rail_tracks_KM , differences = 1)
+motorways_len_1 <- diff(data$Length_of_motorways , differences = 1)
+motorcycles_1 <- diff(data$Number_of_motorcycle , differences = 1)
+aerial_freight_1 <- diff(data$Total_freight_loaded_and_unloaded , differences = 1)
+```
+
+```{r data for models}
+bayes_1 <- cbind(greenhouse_1, harvested_rice_1, permanent_crops_1)
+bayes_2 <- cbind(greenhouse_1, energy_imp_dep_1, oil_imports_1)
+bayes_3 <- cbind(greenhouse_1, GDP_pc_1, fertilizer_1)
+```
+
+## Model 1
+
+Model 1 includes: net greenhouse gas emission per capita, area of harvester rice, and share of land under permanent crops
+
+```{r check data model 1}
+bayes <- bayes_1
+head(bayes)
 bayes_ts <- as.ts(bayes)
-plot(bayes_ts)
+plot(bayes_ts, main = "Model 1 time series", las = 1.5)
 summary(bayes_ts)
 ```
 
-
 ## Model selection
 
-```{r model selection}
+```{r model selection model 1}
 VARselect(bayes_ts, lag.max = 4,type = "const") 
 bmodel <- gen_var(bayes_ts, p = 1, deterministic = "const")
 y <- t(bmodel$data$Y)
@@ -53,7 +249,7 @@ x <- t(bmodel$data$Z)
 
 # OLS estimation
 
-```{r frequentist estimation}
+```{r OLS model 1}
 beta_ols <- tcrossprod(y, x) %*% solve(tcrossprod(x)) # Calculate estimates
 round(beta_ols, 3) # Round estimates and print
 
@@ -64,7 +260,7 @@ round(mu_sigma_ols, 2)
 
 # Bayesian estimation
 
-```{r bayesian estimation}
+```{r bayesian estimation model 1}
 
 set.seed(1234567)
 iter <- 20000 # Number of iterations of the Gibbs sampler
@@ -76,7 +272,7 @@ k <- nrow(y) # Number of endogenous variables
 m <- k * nrow(x) # Number of estimated coefficients
 ```
 
-```{r set priors}
+```{r set priors model 1}
 a_mu_prior <- matrix(0, m) # Vector of prior parameter means
 a_v_i_prior <- diag(1, m) # Inverse of the prior covariance matrix
 
@@ -85,15 +281,15 @@ u_sigma_scale_prior <- diag(1, k) # Prior covariance matrix
 u_sigma_df_post <- t + u_sigma_df_prior # Posterior degrees of freedom
 ```
 
-```{r Initial Values}
+```{r Initial Values model 1}
 u_sigma_i <- solve(mu_sigma_ols)
 
-# Data containers for posterior draws
+# Data containers for Gibss sampler
 draws_a <- matrix(NA, m, store)
 draws_sigma <- matrix(NA, k * k, store)
 ```
 
-```{r Start Gibbs sampler}
+```{r Start Gibbs sampler model 1}
 for (draw in 1:iter) {
   # Draw conditional mean parameters
   a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior)
@@ -112,7 +308,7 @@ for (draw in 1:iter) {
 }
 ```
 
-```{r Gibss sampler results}
+```{r Gibss sampler results model 1}
 
 A <- rowMeans(draws_a) # Obtain means for every row
 A <- matrix(A, k) # Transform mean vector into a matrix
@@ -129,7 +325,277 @@ dimnames(Sigma) <- list(dimnames(y)[[1]], dimnames(y)[[1]]) # Rename matrix dime
 Sigma # Print
 ```
 
-```{r BVAR object}
+```{r BVAR object model 1}
+bvar_model <- bvar(y = bmodel$data$Y, x = bmodel$data$Z, A = draws_a[1:9,],
+                 C = draws_a[10:12, ], Sigma = draws_sigma)
+#bvar_model <- thin.bvar(bvar_model, thin = 2)
+summary(bvar_model)
+
+```
+
+```{r Chain analysis model 1}
+str(draws_a)
+for (i in 1:nrow(draws_a)){
+  par(mfrow = c(1, 2))
+  ts.plot(draws_a[i,], 
+          xlab = 'Number of iterations', 
+          ylab = "Coefficient value", 
+          main = paste0("Chain for coefficient ", i))
+  acf(draws_a[i,], main = paste0("ACF for coefficient ", i))
+}
+plot(bvar_model)
+```
+
+```{r IRF Analysis model 1}
+GIR_1 <- bvartools::irf(bvar_model, impulse = "harvested_rice_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
+round(GIR_1, 2)
+plot(GIR_1, main = "GIRF, Impulse = harvested_rice, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+
+GIR_2 <- bvartools::irf(bvar_model, impulse = "permanent_crops_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
+round(GIR_2, 2)
+plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+```
+
+```{r Error Variance Decomposition model 1}
+bvar_fevd_gir <- bvartools::fevd(bvar_model, response = "greenhouse_1", type = "gir")
+plot(bvar_fevd_gir, main = "GIR-based FEVD of Net Greenhouse gas emissions per capita")
+```
+
+## Model 2
+
+Model 2 includes: net greenhouse gas emission per capita, energy import dependency, and oil imports
+
+```{r check data model 2}
+bayes <- bayes_2
+head(bayes)
+bayes_ts <- as.ts(bayes)
+plot(bayes_ts, main = "Model 2 time series", las = 1.5)
+summary(bayes_ts)
+```
+
+## Model selection
+
+```{r model selection model 2}
+VARselect(bayes_ts, lag.max = 4,type = "const") 
+bmodel <- gen_var(bayes_ts, p = 1, deterministic = "const")
+y <- t(bmodel$data$Y)
+x <- t(bmodel$data$Z)
+```
+
+# OLS estimation
+
+```{r OLS model 2}
+beta_ols <- tcrossprod(y, x) %*% solve(tcrossprod(x)) # Calculate estimates
+round(beta_ols, 3) # Round estimates and print
+
+mu_ols <- y - beta_ols %*% x
+mu_sigma_ols <- tcrossprod(mu_ols) / (ncol(y) - nrow(x))
+round(mu_sigma_ols, 2)
+```
+
+# Bayesian estimation
+
+```{r bayesian estimation model 2}
+
+set.seed(1234567)
+iter <- 20000 # Number of iterations of the Gibbs sampler
+burnin <- 2000 # Number of burn-in draws
+store <- iter - burnin
+
+t <- ncol(y) # Number of observations
+k <- nrow(y) # Number of endogenous variables
+m <- k * nrow(x) # Number of estimated coefficients
+```
+
+```{r set priors model 2}
+a_mu_prior <- matrix(0, m) # Vector of prior parameter means
+a_v_i_prior <- diag(1, m) # Inverse of the prior covariance matrix
+
+u_sigma_df_prior <- 2*k # Prior degrees of freedom
+u_sigma_scale_prior <- diag(1, k) # Prior covariance matrix
+u_sigma_df_post <- t + u_sigma_df_prior # Posterior degrees of freedom
+```
+
+```{r Initial Values model 2}
+u_sigma_i <- solve(mu_sigma_ols)
+
+# Data containers for Gibss sampler
+draws_a <- matrix(NA, m, store)
+draws_sigma <- matrix(NA, k * k, store)
+```
+
+```{r Start Gibbs sampler model 2}
+for (draw in 1:iter) {
+  # Draw conditional mean parameters
+  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior)
+  
+  # Draw variance-covariance matrix
+  u <- y - matrix(a, k) %*% x # Obtain residuals
+  u_sigma_scale_post <- solve(u_sigma_scale_prior + tcrossprod(u))
+  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k)
+  u_sigma <- solve(u_sigma_i) # Invert Sigma_i to obtain Sigma
+  
+  # Store draws
+  if (draw > burnin) {
+    draws_a[, draw - burnin] <- a
+    draws_sigma[, draw - burnin] <- u_sigma
+  }
+}
+```
+
+```{r Gibss sampler results model 2}
+
+A <- rowMeans(draws_a) # Obtain means for every row
+A <- matrix(A, k) # Transform mean vector into a matrix
+A <- round(A, 3) # Round values
+dimnames(A) <- list(dimnames(y)[[1]], dimnames(x)[[1]]) # Rename matrix dimensions
+
+A # Print
+
+Sigma <- rowMeans(draws_sigma) # Obtain means for every row
+Sigma <- matrix(Sigma, k) # Transform mean vector into a matrix
+Sigma <- round(Sigma, 2) # Round values
+dimnames(Sigma) <- list(dimnames(y)[[1]], dimnames(y)[[1]]) # Rename matrix dimensions
+
+Sigma # Print
+```
+
+```{r BVAR object model 2}
+bvar_model <- bvar(y = bmodel$data$Y, x = bmodel$data$Z, A = draws_a[1:9,],
+                 C = draws_a[10:12, ], Sigma = draws_sigma)
+#bvar_model <- thin.bvar(bvar_model, thin = 2)
+summary(bvar_model)
+
+```
+
+```{r Chain analysis model 2}
+str(draws_a)
+for (i in 1:nrow(draws_a)){
+  par(mfrow = c(1, 2))
+  ts.plot(draws_a[i,], 
+          xlab = 'Number of iterations', 
+          ylab = "Coefficient value", 
+          main = paste0("Chain for coefficient ", i))
+  acf(draws_a[i,], main = paste0("ACF for coefficient ", i))
+}
+plot(bvar_model)
+```
+
+```{r IRF Analysis model 2}
+GIR_1 <- bvartools::irf(bvar_model, impulse = "energy_imp_dep_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
+round(GIR_1, 2)
+plot(GIR_1, main = "GIRF, Impulse = energy imports dep., Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+
+GIR_2 <- bvartools::irf(bvar_model, impulse = "oil_imports_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
+round(GIR_2, 2)
+plot(GIR_2, main = "GIRF, Impulse = oil imports, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+```
+
+```{r Error Variance Decomposition model 2}
+bvar_fevd_gir <- bvartools::fevd(bvar_model, response = "greenhouse_1", type = "gir")
+plot(bvar_fevd_gir, main = "GIR-based FEVD of Net Greenhouse gas emissions per capita")
+```
+
+## Model 3
+
+Model 3 includes: net greenhouse gas emission per capita, GDP per capita, and fertilizer per ha
+
+```{r check data model 3}
+bayes <- bayes_3
+head(bayes)
+bayes_ts <- as.ts(bayes)
+plot(bayes_ts, main = "Model 3 time series", las = 1.5)
+summary(bayes_ts)
+```
+
+## Model selection
+
+```{r model selection model 3}
+VARselect(bayes_ts, lag.max = 4,type = "const") 
+bmodel <- gen_var(bayes_ts, p = 1, deterministic = "const")
+y <- t(bmodel$data$Y)
+x <- t(bmodel$data$Z)
+```
+
+# OLS estimation
+
+```{r OLS model 3}
+beta_ols <- tcrossprod(y, x) %*% solve(tcrossprod(x)) # Calculate estimates
+round(beta_ols, 3) # Round estimates and print
+
+mu_ols <- y - beta_ols %*% x
+mu_sigma_ols <- tcrossprod(mu_ols) / (ncol(y) - nrow(x))
+round(mu_sigma_ols, 2)
+```
+
+# Bayesian estimation
+
+```{r bayesian estimation model 3}
+
+set.seed(1234567)
+iter <- 20000 # Number of iterations of the Gibbs sampler
+burnin <- 2000 # Number of burn-in draws
+store <- iter - burnin
+
+t <- ncol(y) # Number of observations
+k <- nrow(y) # Number of endogenous variables
+m <- k * nrow(x) # Number of estimated coefficients
+```
+
+```{r set priors model 3}
+a_mu_prior <- matrix(0, m) # Vector of prior parameter means
+a_v_i_prior <- diag(1, m) # Inverse of the prior covariance matrix
+
+u_sigma_df_prior <- 2*k # Prior degrees of freedom
+u_sigma_scale_prior <- diag(1, k) # Prior covariance matrix
+u_sigma_df_post <- t + u_sigma_df_prior # Posterior degrees of freedom
+```
+
+```{r Initial Values model 3}
+u_sigma_i <- solve(mu_sigma_ols)
+
+# Data containers for Gibss sampler
+draws_a <- matrix(NA, m, store)
+draws_sigma <- matrix(NA, k * k, store)
+```
+
+```{r Start Gibbs sampler model 3}
+for (draw in 1:iter) {
+  # Draw conditional mean parameters
+  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior)
+  
+  # Draw variance-covariance matrix
+  u <- y - matrix(a, k) %*% x # Obtain residuals
+  u_sigma_scale_post <- solve(u_sigma_scale_prior + tcrossprod(u))
+  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k)
+  u_sigma <- solve(u_sigma_i) # Invert Sigma_i to obtain Sigma
+  
+  # Store draws
+  if (draw > burnin) {
+    draws_a[, draw - burnin] <- a
+    draws_sigma[, draw - burnin] <- u_sigma
+  }
+}
+```
+
+```{r Gibss sampler results model 3}
+
+A <- rowMeans(draws_a) # Obtain means for every row
+A <- matrix(A, k) # Transform mean vector into a matrix
+A <- round(A, 3) # Round values
+dimnames(A) <- list(dimnames(y)[[1]], dimnames(x)[[1]]) # Rename matrix dimensions
+
+A # Print
+
+Sigma <- rowMeans(draws_sigma) # Obtain means for every row
+Sigma <- matrix(Sigma, k) # Transform mean vector into a matrix
+Sigma <- round(Sigma, 2) # Round values
+dimnames(Sigma) <- list(dimnames(y)[[1]], dimnames(y)[[1]]) # Rename matrix dimensions
+
+Sigma # Print
+```
+
+```{r BVAR object model 3}
 bvar_model <- bvar(y = bmodel$data$Y, x = bmodel$data$Z, A = draws_a[1:9,],
                  C = draws_a[10:12, ], Sigma = draws_sigma)
 #bvar_model <- thin.bvar(bvar_model, thin = 2)
@@ -150,18 +616,17 @@ for (i in 1:nrow(draws_a)){
 plot(bvar_model)
 ```
 
-```{r IRF Analysis}
-OIR <- bvartools::irf(bvar_model, impulse = "oil_imports_1", response = "net_greenhouse_pc_1", n.ahead = 5, type = "oir")
-plot(OIR, main = "Orthogonalised Impulse Response", xlab = "Period", ylab = "Response")
+```{r IRF Analysis model 3}
+GIR_1 <- bvartools::irf(bvar_model, impulse = "GDP_pc_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
+round(GIR_1, 2)
+plot(GIR_1, main = "GIRF, Impulse = GDP per capita, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 
-GIR <- bvartools::irf(bvar_model, impulse = "oil_imports_1", response = "net_greenhouse_pc_1", n.ahead = 5, type = "gir")
-plot(GIR, main = "Generalised Impulse Response", xlab = "Period", ylab = "Response")
+GIR_2 <- bvartools::irf(bvar_model, impulse = "fertilizer_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
+round(GIR_2, 2)
+plot(GIR_2, main = "GIRF, Impulse = fertilizer_kg/ha, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
-```{r Error Variance Decomposition}
-bvar_fevd_oir <- bvartools::fevd(bvar_model, response = "net_greenhouse_pc_1")
-plot(bvar_fevd_oir, main = "OIR-based FEVD of Net Greenhouse gas emissions per capita")
-
-bvar_fevd_gir <- bvartools::fevd(bvar_model, response = "net_greenhouse_pc_1", type = "gir")
+```{r Error Variance Decomposition model 3}
+bvar_fevd_gir <- bvartools::fevd(bvar_model, response = "greenhouse_1", type = "gir")
 plot(bvar_fevd_gir, main = "GIR-based FEVD of Net Greenhouse gas emissions per capita")
 ```
