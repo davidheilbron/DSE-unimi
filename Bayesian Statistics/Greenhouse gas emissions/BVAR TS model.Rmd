@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Data Preprocessing
 
-```{r libraries}
+```{r libraries, echo=FALSE}
 #Libraries
 library(tidyverse)
 library(readxl)
@@ -24,6 +24,7 @@ library(MTS)
 library(tseries)
 library(vars)
 library(bvartools)
+library(xtable)
 
 data <- read_excel("data.xlsx", sheet = 'Data')
 ```
@@ -37,7 +38,7 @@ data$Fertilizer_used_per_area_of_cropland <- as.numeric(data$Fertilizer_used_per
 data$Share_in_land_area_Forest_Land <- as.numeric(data$Share_in_land_area_Forest_Land)
 ```
 
-```{r data imputation}
+```{r data imputation, echo=FALSE}
 data$Rail_tracks_KM <- na_interpolation(data$Rail_tracks_KM, option = 'spline')
 data$Total_freight_loaded_and_unloaded <- na_interpolation(data$Total_freight_loaded_and_unloaded, option = 'spline')
 data$Chicken_heads <- na_interpolation(data$Chicken_heads, option = 'spline')
@@ -46,11 +47,11 @@ data$Turkeys_heads <- na_interpolation(data$Turkeys_heads, option = 'spline')
 
 ```{r merge common features}
 data <- data %>% 
-  mutate(livestock_heads = Pigs_heads + Head_sheep + Head_goat + 
+  dplyr::mutate(livestock_heads = Pigs_heads + Head_sheep + Head_goat + 
            Chicken_heads + Turkeys_heads + Cattle_heads + Buffalo_head) 
 
 data <- data %>% 
-  mutate(res_capacity = hydro_capacity + geothermal_capacity + 
+  dplyr::mutate(res_capacity = hydro_capacity + geothermal_capacity + 
            wind_capacity + solar_capacity + biofuels_capacity + 
            biogas_capacity + waste_capacity)
 
@@ -178,7 +179,7 @@ plot(data$Rail_tracks_KM,
 ```
 
 ```{r plot data 5/5}
-par(mfrow = c(1,3))
+par(mfrow = c(2,2))
 plot(data$Length_of_motorways,
      type = 'l',
      xlab = "Time",
@@ -226,6 +227,10 @@ bayes_2 <- cbind(greenhouse_1, energy_imp_dep_1, oil_imports_1)
 bayes_3 <- cbind(greenhouse_1, GDP_pc_1, fertilizer_1)
 ```
 
+```{r remove clutter 1}
+rm(list = ls()[!ls() %in% c("bayes_1", "bayes_2", "bayes_3")])
+```
+
 ## Model 1
 
 Model 1 includes: net greenhouse gas emission per capita, area of harvester rice, and share of land under permanent crops
@@ -234,7 +239,7 @@ Model 1 includes: net greenhouse gas emission per capita, area of harvester rice
 bayes <- bayes_1
 head(bayes)
 bayes_ts <- as.ts(bayes)
-plot(bayes_ts, main = "Model 1 time series", las = 1.5)
+plot(bayes_ts, main = "Model 1 time series", las = 1.5, lty = )
 summary(bayes_ts)
 ```
 
@@ -247,18 +252,21 @@ y <- t(bmodel$data$Y)
 x <- t(bmodel$data$Z)
 ```
 
-# OLS estimation
+# OLS estimation, Model 1
 
 ```{r OLS model 1}
 beta_ols <- tcrossprod(y, x) %*% solve(tcrossprod(x)) # Calculate estimates
 round(beta_ols, 3) # Round estimates and print
+tab_ols_11 <- xtable(round(beta_ols, 3), caption = "OLS betas, Model 1", label = "tab:tab_ols_11")
 
-mu_ols <- y - beta_ols %*% x
-mu_sigma_ols <- tcrossprod(mu_ols) / (ncol(y) - nrow(x))
-round(mu_sigma_ols, 2)
+
+e_ols <- y - beta_ols %*% x
+e_sigma_ols <- tcrossprod(e_ols) / (ncol(y) - nrow(x))
+round(e_sigma_ols, 2)
+tab_ols_12 <- xtable(round(e_sigma_ols, 2), caption = "OLS var-covar, Model 1", label = "tab:tab_ols_12")
 ```
 
-# Bayesian estimation
+# Bayesian estimation, Model 1
 
 ```{r bayesian estimation model 1}
 
@@ -273,7 +281,7 @@ m <- k * nrow(x) # Number of estimated coefficients
 ```
 
 ```{r set priors model 1}
-a_mu_prior <- matrix(0, m) # Vector of prior parameter means
+a_mu_prior <- matrix(c(beta_ols), m) # Vector of prior parameter means
 a_v_i_prior <- diag(1, m) # Inverse of the prior covariance matrix
 
 u_sigma_df_prior <- 2*k # Prior degrees of freedom
@@ -282,7 +290,7 @@ u_sigma_df_post <- t + u_sigma_df_prior # Posterior degrees of freedom
 ```
 
 ```{r Initial Values model 1}
-u_sigma_i <- solve(mu_sigma_ols)
+u_sigma_i <- solve(e_sigma_ols) #Inverse error variance-covariance
 
 # Data containers for Gibss sampler
 draws_a <- matrix(NA, m, store)
@@ -292,12 +300,12 @@ draws_sigma <- matrix(NA, k * k, store)
 ```{r Start Gibbs sampler model 1}
 for (draw in 1:iter) {
   # Draw conditional mean parameters
-  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior)
+  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior) #Draw the coefficients from a Normal density
   
   # Draw variance-covariance matrix
   u <- y - matrix(a, k) %*% x # Obtain residuals
   u_sigma_scale_post <- solve(u_sigma_scale_prior + tcrossprod(u))
-  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k)
+  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k) #Draw from the iW density
   u_sigma <- solve(u_sigma_i) # Invert Sigma_i to obtain Sigma
   
   # Store draws
@@ -309,13 +317,13 @@ for (draw in 1:iter) {
 ```
 
 ```{r Gibss sampler results model 1}
-
 A <- rowMeans(draws_a) # Obtain means for every row
 A <- matrix(A, k) # Transform mean vector into a matrix
 A <- round(A, 3) # Round values
 dimnames(A) <- list(dimnames(y)[[1]], dimnames(x)[[1]]) # Rename matrix dimensions
 
 A # Print
+tab_bayes_A1 <- xtable(round(A, 3), caption = "Bayesian coefficients, Model 1", label = "tab:tab_bayes_A1")
 
 Sigma <- rowMeans(draws_sigma) # Obtain means for every row
 Sigma <- matrix(Sigma, k) # Transform mean vector into a matrix
@@ -323,6 +331,7 @@ Sigma <- round(Sigma, 2) # Round values
 dimnames(Sigma) <- list(dimnames(y)[[1]], dimnames(y)[[1]]) # Rename matrix dimensions
 
 Sigma # Print
+tab_bayes_Sigma1 <- xtable(round(Sigma, 3), caption = "Bayesian var-covar, Model 1", label = "tab:tab_bayes_Sigma1")
 ```
 
 ```{r BVAR object model 1}
@@ -349,17 +358,44 @@ plot(bvar_model)
 ```{r IRF Analysis model 1}
 GIR_1 <- bvartools::irf(bvar_model, impulse = "harvested_rice_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
 round(GIR_1, 2)
+tab_GIR_11 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 1", label = "tab:tab_GIR_11")
 plot(GIR_1, main = "GIRF, Impulse = harvested_rice, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 
 GIR_2 <- bvartools::irf(bvar_model, impulse = "permanent_crops_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
 round(GIR_2, 2)
+tab_GIR_12 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 1", label = "tab:tab_GIR_12")
 plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ```{r Error Variance Decomposition model 1}
 bvar_fevd_gir <- bvartools::fevd(bvar_model, response = "greenhouse_1", type = "gir")
+round(bvar_fevd_gir, 2)
 plot(bvar_fevd_gir, main = "GIR-based FEVD of Net Greenhouse gas emissions per capita")
 ```
+
+```{r print LaTeX tables, Model 1}
+print(tab_ols_11, caption.placement = "top") #OLS coefficients
+cat("\n")
+print(tab_ols_12, caption.placement = "top") #OLS error var-covar
+
+cat("\n")
+
+print(tab_bayes_A1, caption.placement = "top") #Bayesian coefficients
+cat("\n")
+print(tab_bayes_Sigma1, caption.placement = "top") #Bayesian error var-covar
+
+cat("\n")
+
+print(tab_GIR_11, caption.placement = "top") #GIRF 1 coefficients
+cat("\n")
+print(tab_GIR_12, caption.placement = "top") #GIRF 2 coefficients
+```
+
+
+```{r remove clutter 2}
+rm(list = ls()[!ls() %in% c("bayes_1", "bayes_2", "bayes_3")])
+```
+
 
 ## Model 2
 
@@ -382,18 +418,21 @@ y <- t(bmodel$data$Y)
 x <- t(bmodel$data$Z)
 ```
 
-# OLS estimation
+# OLS estimation, Model 2
 
 ```{r OLS model 2}
 beta_ols <- tcrossprod(y, x) %*% solve(tcrossprod(x)) # Calculate estimates
 round(beta_ols, 3) # Round estimates and print
+tab_ols_21 <- xtable(round(beta_ols, 3), caption = "OLS betas, Model 2", label = "tab:tab_ols_11")
 
-mu_ols <- y - beta_ols %*% x
-mu_sigma_ols <- tcrossprod(mu_ols) / (ncol(y) - nrow(x))
-round(mu_sigma_ols, 2)
+
+e_ols <- y - beta_ols %*% x
+e_sigma_ols <- tcrossprod(e_ols) / (ncol(y) - nrow(x))
+round(e_sigma_ols, 2)
+tab_ols_22 <- xtable(round(e_sigma_ols, 2), caption = "OLS var-covar, Model 2", label = "tab:tab_ols_12")
 ```
 
-# Bayesian estimation
+# Bayesian estimation, Model 2
 
 ```{r bayesian estimation model 2}
 
@@ -408,7 +447,7 @@ m <- k * nrow(x) # Number of estimated coefficients
 ```
 
 ```{r set priors model 2}
-a_mu_prior <- matrix(0, m) # Vector of prior parameter means
+a_mu_prior <- matrix(c(beta_ols), m) # Vector of prior parameter means
 a_v_i_prior <- diag(1, m) # Inverse of the prior covariance matrix
 
 u_sigma_df_prior <- 2*k # Prior degrees of freedom
@@ -417,7 +456,7 @@ u_sigma_df_post <- t + u_sigma_df_prior # Posterior degrees of freedom
 ```
 
 ```{r Initial Values model 2}
-u_sigma_i <- solve(mu_sigma_ols)
+u_sigma_i <- solve(e_sigma_ols)
 
 # Data containers for Gibss sampler
 draws_a <- matrix(NA, m, store)
@@ -427,12 +466,12 @@ draws_sigma <- matrix(NA, k * k, store)
 ```{r Start Gibbs sampler model 2}
 for (draw in 1:iter) {
   # Draw conditional mean parameters
-  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior)
+  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior) #Draw the coefficients from a Normal density
   
   # Draw variance-covariance matrix
   u <- y - matrix(a, k) %*% x # Obtain residuals
   u_sigma_scale_post <- solve(u_sigma_scale_prior + tcrossprod(u))
-  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k)
+  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k) #Draw from the iW density
   u_sigma <- solve(u_sigma_i) # Invert Sigma_i to obtain Sigma
   
   # Store draws
@@ -444,13 +483,13 @@ for (draw in 1:iter) {
 ```
 
 ```{r Gibss sampler results model 2}
-
 A <- rowMeans(draws_a) # Obtain means for every row
 A <- matrix(A, k) # Transform mean vector into a matrix
 A <- round(A, 3) # Round values
 dimnames(A) <- list(dimnames(y)[[1]], dimnames(x)[[1]]) # Rename matrix dimensions
 
 A # Print
+tab_bayes_A2 <- xtable(round(A, 3), caption = "Bayesian coefficients, Model 2", label = "tab:tab_bayes_A2")
 
 Sigma <- rowMeans(draws_sigma) # Obtain means for every row
 Sigma <- matrix(Sigma, k) # Transform mean vector into a matrix
@@ -458,6 +497,7 @@ Sigma <- round(Sigma, 2) # Round values
 dimnames(Sigma) <- list(dimnames(y)[[1]], dimnames(y)[[1]]) # Rename matrix dimensions
 
 Sigma # Print
+tab_bayes_Sigma2 <- xtable(round(Sigma, 3), caption = "Bayesian var-covar, Model 2", label = "tab:tab_bayes_Sigma2")
 ```
 
 ```{r BVAR object model 2}
@@ -484,17 +524,45 @@ plot(bvar_model)
 ```{r IRF Analysis model 2}
 GIR_1 <- bvartools::irf(bvar_model, impulse = "energy_imp_dep_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
 round(GIR_1, 2)
-plot(GIR_1, main = "GIRF, Impulse = energy imports dep., Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+tab_GIR_21 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 2", label = "tab:tab_GIR_21")
+plot(GIR_1, main = "GIRF, Impulse = harvested_rice, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 
 GIR_2 <- bvartools::irf(bvar_model, impulse = "oil_imports_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
 round(GIR_2, 2)
-plot(GIR_2, main = "GIRF, Impulse = oil imports, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+tab_GIR_22 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 2", label = "tab:tab_GIR_22")
+plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ```{r Error Variance Decomposition model 2}
 bvar_fevd_gir <- bvartools::fevd(bvar_model, response = "greenhouse_1", type = "gir")
+round(bvar_fevd_gir, 2)
 plot(bvar_fevd_gir, main = "GIR-based FEVD of Net Greenhouse gas emissions per capita")
 ```
+
+
+```{r print LaTeX tables, Model 2}
+print(tab_ols_21, caption.placement = "top") #OLS coefficients
+cat("\n")
+print(tab_ols_22, caption.placement = "top") #OLS error var-covar
+
+cat("\n")
+
+print(tab_bayes_A2, caption.placement = "top") #Bayesian coefficients
+cat("\n")
+print(tab_bayes_Sigma2, caption.placement = "top") #Bayesian error var-covar
+
+cat("\n")
+
+print(tab_GIR_21, caption.placement = "top") #GIRF 1 coefficients
+cat("\n")
+print(tab_GIR_22, caption.placement = "top") #GIRF 2 coefficients
+```
+
+
+```{r remove clutter 3}
+rm(list = ls()[!ls() %in% c("bayes_1", "bayes_2", "bayes_3")])
+```
+
 
 ## Model 3
 
@@ -517,18 +585,21 @@ y <- t(bmodel$data$Y)
 x <- t(bmodel$data$Z)
 ```
 
-# OLS estimation
+# OLS estimation, Model 3
 
 ```{r OLS model 3}
 beta_ols <- tcrossprod(y, x) %*% solve(tcrossprod(x)) # Calculate estimates
 round(beta_ols, 3) # Round estimates and print
+tab_ols_31 <- xtable(round(beta_ols, 3), caption = "OLS betas, Model 3", label = "tab:tab_ols_31")
 
-mu_ols <- y - beta_ols %*% x
-mu_sigma_ols <- tcrossprod(mu_ols) / (ncol(y) - nrow(x))
-round(mu_sigma_ols, 2)
+
+e_ols <- y - beta_ols %*% x
+e_sigma_ols <- tcrossprod(e_ols) / (ncol(y) - nrow(x))
+round(e_sigma_ols, 2)
+tab_ols_32 <- xtable(round(e_sigma_ols, 2), caption = "OLS var-covar, Model 3", label = "tab:tab_ols_32")
 ```
 
-# Bayesian estimation
+# Bayesian estimation, Model 3
 
 ```{r bayesian estimation model 3}
 
@@ -552,7 +623,7 @@ u_sigma_df_post <- t + u_sigma_df_prior # Posterior degrees of freedom
 ```
 
 ```{r Initial Values model 3}
-u_sigma_i <- solve(mu_sigma_ols)
+u_sigma_i <- solve(e_sigma_ols)
 
 # Data containers for Gibss sampler
 draws_a <- matrix(NA, m, store)
@@ -562,12 +633,12 @@ draws_sigma <- matrix(NA, k * k, store)
 ```{r Start Gibbs sampler model 3}
 for (draw in 1:iter) {
   # Draw conditional mean parameters
-  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior)
+  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior) #Draw the coefficients from a Normal density
   
   # Draw variance-covariance matrix
   u <- y - matrix(a, k) %*% x # Obtain residuals
   u_sigma_scale_post <- solve(u_sigma_scale_prior + tcrossprod(u))
-  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k)
+  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k) #Draw from the iW density
   u_sigma <- solve(u_sigma_i) # Invert Sigma_i to obtain Sigma
   
   # Store draws
@@ -579,13 +650,13 @@ for (draw in 1:iter) {
 ```
 
 ```{r Gibss sampler results model 3}
-
 A <- rowMeans(draws_a) # Obtain means for every row
 A <- matrix(A, k) # Transform mean vector into a matrix
 A <- round(A, 3) # Round values
 dimnames(A) <- list(dimnames(y)[[1]], dimnames(x)[[1]]) # Rename matrix dimensions
 
 A # Print
+tab_bayes_A3 <- xtable(round(A, 3), caption = "Bayesian coefficients, Model 3", label = "tab:tab_bayes_A3")
 
 Sigma <- rowMeans(draws_sigma) # Obtain means for every row
 Sigma <- matrix(Sigma, k) # Transform mean vector into a matrix
@@ -593,6 +664,7 @@ Sigma <- round(Sigma, 2) # Round values
 dimnames(Sigma) <- list(dimnames(y)[[1]], dimnames(y)[[1]]) # Rename matrix dimensions
 
 Sigma # Print
+tab_bayes_Sigma3 <- xtable(round(Sigma, 3), caption = "Bayesian var-covar, Model 3", label = "tab:tab_bayes_Sigma3")
 ```
 
 ```{r BVAR object model 3}
@@ -619,14 +691,34 @@ plot(bvar_model)
 ```{r IRF Analysis model 3}
 GIR_1 <- bvartools::irf(bvar_model, impulse = "GDP_pc_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
 round(GIR_1, 2)
-plot(GIR_1, main = "GIRF, Impulse = GDP per capita, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+tab_GIR_31 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 3", label = "tab:tab_GIR_31")
+plot(GIR_1, main = "GIRF, Impulse = harvested_rice, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 
 GIR_2 <- bvartools::irf(bvar_model, impulse = "fertilizer_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
 round(GIR_2, 2)
-plot(GIR_2, main = "GIRF, Impulse = fertilizer_kg/ha, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+tab_GIR_32 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 3", label = "tab:tab_GIR_32")
+plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ```{r Error Variance Decomposition model 3}
 bvar_fevd_gir <- bvartools::fevd(bvar_model, response = "greenhouse_1", type = "gir")
+round(bvar_fevd_gir, 2)
 plot(bvar_fevd_gir, main = "GIR-based FEVD of Net Greenhouse gas emissions per capita")
+```
+```{r print LaTeX tables, Model 3}
+print(tab_ols_31, caption.placement = "top") #OLS coefficients
+cat("\n")
+print(tab_ols_32, caption.placement = "top") #OLS error var-covar
+
+cat("\n")
+
+print(tab_bayes_A3, caption.placement = "top") #Bayesian coefficients
+cat("\n")
+print(tab_bayes_Sigma3, caption.placement = "top") #Bayesian error var-covar
+
+cat("\n")
+
+print(tab_GIR_31, caption.placement = "top") #GIRF 1 coefficients
+cat("\n")
+print(tab_GIR_32, caption.placement = "top") #GIRF 2 coefficients
 ```

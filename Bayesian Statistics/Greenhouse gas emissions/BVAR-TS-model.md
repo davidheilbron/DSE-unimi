@@ -11,11 +11,6 @@ date: "2023-05-01"
 ## Data Preprocessing
 
 
-```r
-#Libraries
-library(tidyverse)
-```
-
 ```
 ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
 ## ✔ ggplot2 3.4.0      ✔ purrr   1.0.0 
@@ -25,11 +20,6 @@ library(tidyverse)
 ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()
-```
-
-```r
-library(readxl)
-library(xts)
 ```
 
 ```
@@ -77,11 +67,6 @@ library(xts)
 ##     first, last
 ```
 
-```r
-library(dplyr)
-library(imputeTS)
-```
-
 ```
 ## Warning: package 'imputeTS' was built under R version 4.2.3
 ```
@@ -98,17 +83,8 @@ library(imputeTS)
 ##     na.locf
 ```
 
-```r
-library(ggplot2)
-library(MTS)
-```
-
 ```
 ## Warning: package 'MTS' was built under R version 4.2.3
-```
-
-```r
-library(tseries)
 ```
 
 ```
@@ -122,10 +98,6 @@ library(tseries)
 ## The following object is masked from 'package:imputeTS':
 ## 
 ##     na.remove
-```
-
-```r
-library(vars)
 ```
 
 ```
@@ -181,10 +153,6 @@ library(vars)
 ##     VAR
 ```
 
-```r
-library(bvartools)
-```
-
 ```
 ## Warning: package 'bvartools' was built under R version 4.2.3
 ```
@@ -206,28 +174,18 @@ library(bvartools)
 ##     fevd, irf
 ```
 
-```r
-data <- read_excel("data.xlsx", sheet = 'Data')
-```
 
 
 
-
-```r
-data$Rail_tracks_KM <- na_interpolation(data$Rail_tracks_KM, option = 'spline')
-data$Total_freight_loaded_and_unloaded <- na_interpolation(data$Total_freight_loaded_and_unloaded, option = 'spline')
-data$Chicken_heads <- na_interpolation(data$Chicken_heads, option = 'spline')
-data$Turkeys_heads <- na_interpolation(data$Turkeys_heads, option = 'spline')
-```
 
 
 ```r
 data <- data %>% 
-  mutate(livestock_heads = Pigs_heads + Head_sheep + Head_goat + 
+  dplyr::mutate(livestock_heads = Pigs_heads + Head_sheep + Head_goat + 
            Chicken_heads + Turkeys_heads + Cattle_heads + Buffalo_head) 
 
 data <- data %>% 
-  mutate(res_capacity = hydro_capacity + geothermal_capacity + 
+  dplyr::mutate(res_capacity = hydro_capacity + geothermal_capacity + 
            wind_capacity + solar_capacity + biofuels_capacity + 
            biogas_capacity + waste_capacity)
 
@@ -368,7 +326,7 @@ plot(data$Rail_tracks_KM,
 
 
 ```r
-par(mfrow = c(1,3))
+par(mfrow = c(2,2))
 plot(data$Length_of_motorways,
      type = 'l',
      xlab = "Time",
@@ -420,6 +378,11 @@ bayes_2 <- cbind(greenhouse_1, energy_imp_dep_1, oil_imports_1)
 bayes_3 <- cbind(greenhouse_1, GDP_pc_1, fertilizer_1)
 ```
 
+
+```r
+rm(list = ls()[!ls() %in% c("bayes_1", "bayes_2", "bayes_3")])
+```
+
 ## Model 1
 
 Model 1 includes: net greenhouse gas emission per capita, area of harvester rice, and share of land under permanent crops
@@ -442,7 +405,7 @@ head(bayes)
 
 ```r
 bayes_ts <- as.ts(bayes)
-plot(bayes_ts, main = "Model 1 time series", las = 1.5)
+plot(bayes_ts, main = "Model 1 time series", las = 1.5, lty = )
 ```
 
 ![](BVAR-TS-model_files/figure-html/check data model 1-1.png)<!-- -->
@@ -487,7 +450,7 @@ y <- t(bmodel$data$Y)
 x <- t(bmodel$data$Z)
 ```
 
-# OLS estimation
+# OLS estimation, Model 1
 
 
 ```r
@@ -507,9 +470,12 @@ round(beta_ols, 3) # Round estimates and print
 ```
 
 ```r
-mu_ols <- y - beta_ols %*% x
-mu_sigma_ols <- tcrossprod(mu_ols) / (ncol(y) - nrow(x))
-round(mu_sigma_ols, 2)
+tab_ols_11 <- xtable(round(beta_ols, 3), caption = "OLS betas, Model 1", label = "tab:tab_ols_11")
+
+
+e_ols <- y - beta_ols %*% x
+e_sigma_ols <- tcrossprod(e_ols) / (ncol(y) - nrow(x))
+round(e_sigma_ols, 2)
 ```
 
 ```
@@ -519,7 +485,11 @@ round(mu_sigma_ols, 2)
 ## permanent_crops_1         0.00             0.12              0.82
 ```
 
-# Bayesian estimation
+```r
+tab_ols_12 <- xtable(round(e_sigma_ols, 2), caption = "OLS var-covar, Model 1", label = "tab:tab_ols_12")
+```
+
+# Bayesian estimation, Model 1
 
 
 ```r
@@ -535,7 +505,7 @@ m <- k * nrow(x) # Number of estimated coefficients
 
 
 ```r
-a_mu_prior <- matrix(0, m) # Vector of prior parameter means
+a_mu_prior <- matrix(c(beta_ols), m) # Vector of prior parameter means
 a_v_i_prior <- diag(1, m) # Inverse of the prior covariance matrix
 
 u_sigma_df_prior <- 2*k # Prior degrees of freedom
@@ -545,7 +515,7 @@ u_sigma_df_post <- t + u_sigma_df_prior # Posterior degrees of freedom
 
 
 ```r
-u_sigma_i <- solve(mu_sigma_ols)
+u_sigma_i <- solve(e_sigma_ols) #Inverse error variance-covariance
 
 # Data containers for Gibss sampler
 draws_a <- matrix(NA, m, store)
@@ -556,12 +526,12 @@ draws_sigma <- matrix(NA, k * k, store)
 ```r
 for (draw in 1:iter) {
   # Draw conditional mean parameters
-  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior)
+  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior) #Draw the coefficients from a Normal density
   
   # Draw variance-covariance matrix
   u <- y - matrix(a, k) %*% x # Obtain residuals
   u_sigma_scale_post <- solve(u_sigma_scale_prior + tcrossprod(u))
-  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k)
+  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k) #Draw from the iW density
   u_sigma <- solve(u_sigma_i) # Invert Sigma_i to obtain Sigma
   
   # Store draws
@@ -584,16 +554,18 @@ A # Print
 
 ```
 ##                   greenhouse_1.01 harvested_rice_1.01 permanent_crops_1.01
-## greenhouse_1                0.138               0.083                0.136
-## harvested_rice_1           -0.760               0.189                0.045
-## permanent_crops_1          -0.260               0.014               -0.192
+## greenhouse_1                0.136               0.084                0.136
+## harvested_rice_1           -0.994               0.211                0.037
+## permanent_crops_1          -0.384               0.024               -0.203
 ##                    const
-## greenhouse_1      -0.081
-## harvested_rice_1   0.008
-## permanent_crops_1  0.000
+## greenhouse_1      -0.082
+## harvested_rice_1  -0.010
+## permanent_crops_1 -0.009
 ```
 
 ```r
+tab_bayes_A1 <- xtable(round(A, 3), caption = "Bayesian coefficients, Model 1", label = "tab:tab_bayes_A1")
+
 Sigma <- rowMeans(draws_sigma) # Obtain means for every row
 Sigma <- matrix(Sigma, k) # Transform mean vector into a matrix
 Sigma <- round(Sigma, 2) # Round values
@@ -607,6 +579,10 @@ Sigma # Print
 ## greenhouse_1              0.11             0.02              0.00
 ## harvested_rice_1          0.02             0.69              0.11
 ## permanent_crops_1         0.00             0.11              0.79
+```
+
+```r
+tab_bayes_Sigma1 <- xtable(round(Sigma, 3), caption = "Bayesian var-covar, Model 1", label = "tab:tab_bayes_Sigma1")
 ```
 
 
@@ -627,65 +603,65 @@ summary(bvar_model)
 ## 
 ## Variable: greenhouse_1 
 ## 
-##                          Mean      SD  Naive SD Time-series SD     2.5%
-## greenhouse_1.01       0.13800 0.20865 0.0015552      0.0015552 -0.27856
-## harvested_rice_1.01   0.08286 0.07178 0.0005350      0.0005350 -0.05928
-## permanent_crops_1.01  0.13550 0.06775 0.0005050      0.0005050  0.00402
-## const                -0.08124 0.06216 0.0004633      0.0004633 -0.20355
+##                          Mean      SD  Naive SD Time-series SD      2.5%
+## greenhouse_1.01       0.13617 0.20795 0.0015500      0.0015090 -0.275600
+## harvested_rice_1.01   0.08355 0.07175 0.0005348      0.0005348 -0.058239
+## permanent_crops_1.01  0.13603 0.06775 0.0005050      0.0005050  0.004856
+## const                -0.08171 0.06214 0.0004632      0.0004632 -0.203805
 ##                           50%   97.5%
-## greenhouse_1.01       0.13982 0.54812
-## harvested_rice_1.01   0.08277 0.22266
-## permanent_crops_1.01  0.13574 0.27031
-## const                -0.08120 0.04131
+## greenhouse_1.01       0.13774 0.54318
+## harvested_rice_1.01   0.08355 0.22282
+## permanent_crops_1.01  0.13638 0.27094
+## const                -0.08167 0.04092
 ## 
 ## Variable: harvested_rice_1 
 ## 
-##                           Mean     SD Naive SD Time-series SD    2.5%       50%
-## greenhouse_1.01      -0.759637 0.4765 0.003552       0.003552 -1.6900 -0.766335
-## harvested_rice_1.01   0.189438 0.1820 0.001357       0.001357 -0.1667  0.189812
-## permanent_crops_1.01  0.045016 0.1704 0.001270       0.001270 -0.2863  0.045105
-## const                 0.007861 0.1559 0.001162       0.001162 -0.2976  0.005634
-##                       97.5%
-## greenhouse_1.01      0.1883
-## harvested_rice_1.01  0.5501
-## permanent_crops_1.01 0.3817
-## const                0.3218
+##                           Mean     SD Naive SD Time-series SD    2.5%      50%
+## greenhouse_1.01      -0.994202 0.4729 0.003525       0.003525 -1.9307 -0.99830
+## harvested_rice_1.01   0.211020 0.1815 0.001353       0.001353 -0.1435  0.21033
+## permanent_crops_1.01  0.036640 0.1698 0.001266       0.001266 -0.2937  0.03673
+## const                -0.009939 0.1554 0.001158       0.001158 -0.3141 -0.01169
+##                         97.5%
+## greenhouse_1.01      -0.06212
+## harvested_rice_1.01   0.57232
+## permanent_crops_1.01  0.37262
+## const                 0.30138
 ## 
 ## Variable: permanent_crops_1 
 ## 
-##                            Mean     SD Naive SD Time-series SD    2.5%
-## greenhouse_1.01      -2.598e-01 0.5046 0.003761       0.003761 -1.2471
-## harvested_rice_1.01   1.401e-02 0.1939 0.001445       0.001445 -0.3685
-## permanent_crops_1.01 -1.923e-01 0.1848 0.001378       0.001378 -0.5530
-## const                -1.987e-05 0.1670 0.001245       0.001245 -0.3314
-##                            50%  97.5%
-## greenhouse_1.01      -0.260843 0.7355
-## harvested_rice_1.01   0.014088 0.3962
-## permanent_crops_1.01 -0.191455 0.1727
-## const                -0.000205 0.3331
+##                           Mean     SD Naive SD Time-series SD    2.5%       50%
+## greenhouse_1.01      -0.384136 0.5027 0.003747       0.003747 -1.3731 -0.383087
+## harvested_rice_1.01   0.024367 0.1937 0.001444       0.001444 -0.3576  0.024224
+## permanent_crops_1.01 -0.203281 0.1846 0.001376       0.001376 -0.5652 -0.202007
+## const                -0.009163 0.1669 0.001244       0.001244 -0.3410 -0.008836
+##                       97.5%
+## greenhouse_1.01      0.6071
+## harvested_rice_1.01  0.4063
+## permanent_crops_1.01 0.1600
+## const                0.3242
 ## 
 ## Variance-covariance matrix:
 ## 
 ##                                         Mean      SD  Naive SD Time-series SD
-## greenhouse_1_greenhouse_1           0.105865 0.03017 0.0002249      0.0002530
-## greenhouse_1_harvested_rice_1       0.022639 0.05267 0.0003926      0.0004438
-## greenhouse_1_permanent_crops_1      0.003964 0.05668 0.0004225      0.0004735
-## harvested_rice_1_greenhouse_1       0.022639 0.05267 0.0003926      0.0004438
-## harvested_rice_1_harvested_rice_1   0.690775 0.19062 0.0014208      0.0015776
-## harvested_rice_1_permanent_crops_1  0.110765 0.14364 0.0010706      0.0011950
-## permanent_crops_1_greenhouse_1      0.003964 0.05668 0.0004225      0.0004735
-## permanent_crops_1_harvested_rice_1  0.110765 0.14364 0.0010706      0.0011950
-## permanent_crops_1_permanent_crops_1 0.790323 0.22095 0.0016469      0.0019375
+## greenhouse_1_greenhouse_1           0.105837 0.03017 0.0002249      0.0002528
+## greenhouse_1_harvested_rice_1       0.022605 0.05231 0.0003899      0.0004381
+## greenhouse_1_permanent_crops_1      0.003939 0.05653 0.0004213      0.0004712
+## harvested_rice_1_greenhouse_1       0.022605 0.05231 0.0003899      0.0004381
+## harvested_rice_1_harvested_rice_1   0.686331 0.18868 0.0014063      0.0015291
+## harvested_rice_1_permanent_crops_1  0.108410 0.14235 0.0010610      0.0011768
+## permanent_crops_1_greenhouse_1      0.003939 0.05653 0.0004213      0.0004712
+## permanent_crops_1_harvested_rice_1  0.108410 0.14235 0.0010610      0.0011768
+## permanent_crops_1_permanent_crops_1 0.788902 0.22017 0.0016411      0.0019248
 ##                                         2.5%      50%  97.5%
-## greenhouse_1_greenhouse_1            0.06273 0.100813 0.1782
-## greenhouse_1_harvested_rice_1       -0.07826 0.020905 0.1306
-## greenhouse_1_permanent_crops_1      -0.10883 0.003984 0.1166
-## harvested_rice_1_greenhouse_1       -0.07826 0.020905 0.1306
-## harvested_rice_1_harvested_rice_1    0.41010 0.660749 1.1397
-## harvested_rice_1_permanent_crops_1  -0.15338 0.102057 0.4220
-## permanent_crops_1_greenhouse_1      -0.10883 0.003984 0.1166
-## permanent_crops_1_harvested_rice_1  -0.15338 0.102057 0.4220
-## permanent_crops_1_permanent_crops_1  0.46581 0.753218 1.3177
+## greenhouse_1_greenhouse_1            0.06270 0.100771 0.1779
+## greenhouse_1_harvested_rice_1       -0.07774 0.020861 0.1311
+## greenhouse_1_permanent_crops_1      -0.10800 0.003959 0.1158
+## harvested_rice_1_greenhouse_1       -0.07774 0.020861 0.1311
+## harvested_rice_1_harvested_rice_1    0.40848 0.656425 1.1320
+## harvested_rice_1_permanent_crops_1  -0.15340 0.100428 0.4184
+## permanent_crops_1_greenhouse_1      -0.10800 0.003959 0.1158
+## permanent_crops_1_harvested_rice_1  -0.15340 0.100428 0.4184
+## permanent_crops_1_permanent_crops_1  0.46561 0.752638 1.3131
 ```
 
 
@@ -694,7 +670,7 @@ str(draws_a)
 ```
 
 ```
-##  num [1:12, 1:18000] 0.1377 -0.9716 -0.0626 0.1195 0.1873 ...
+##  num [1:12, 1:18000] 0.135 -1.193 -0.226 0.12 0.209 ...
 ```
 
 ```r
@@ -728,15 +704,16 @@ round(GIR_1, 2)
 ## End = 5 
 ## Frequency = 1 
 ##    2.5%  50% 97.5%
-## 0 -0.11 0.03  0.17
-## 1 -0.04 0.11  0.27
+## 0 -0.11 0.03  0.18
+## 1 -0.05 0.11  0.27
 ## 2 -0.07 0.02  0.14
-## 3 -0.06 0.00  0.07
-## 4 -0.04 0.00  0.03
-## 5 -0.02 0.00  0.02
+## 3 -0.07 0.00  0.06
+## 4 -0.05 0.00  0.03
+## 5 -0.03 0.00  0.02
 ```
 
 ```r
+tab_GIR_11 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 1", label = "tab:tab_GIR_11")
 plot(GIR_1, main = "GIRF, Impulse = harvested_rice, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
@@ -756,12 +733,13 @@ round(GIR_2, 2)
 ## 0 -0.13 0.01  0.14
 ## 1  0.01 0.15  0.29
 ## 2 -0.10 0.00  0.11
-## 3 -0.06 0.00  0.07
+## 3 -0.07 0.00  0.06
 ## 4 -0.04 0.00  0.03
-## 5 -0.01 0.00  0.03
+## 5 -0.02 0.00  0.03
 ```
 
 ```r
+tab_GIR_12 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 1", label = "tab:tab_GIR_12")
 plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
@@ -770,10 +748,200 @@ plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas",
 
 ```r
 bvar_fevd_gir <- bvartools::fevd(bvar_model, response = "greenhouse_1", type = "gir")
+round(bvar_fevd_gir, 2)
+```
+
+```
+## Time Series:
+## Start = 0 
+## End = 5 
+## Frequency = 1 
+##   greenhouse_1 harvested_rice_1 permanent_crops_1
+## 0         0.32             0.09              0.09
+## 1         0.26             0.26              0.45
+## 2         0.26             0.28              0.46
+## 3         0.26             0.28              0.47
+## 4         0.26             0.28              0.47
+## 5         0.26             0.28              0.47
+```
+
+```r
 plot(bvar_fevd_gir, main = "GIR-based FEVD of Net Greenhouse gas emissions per capita")
 ```
 
 ![](BVAR-TS-model_files/figure-html/Error Variance Decomposition model 1-1.png)<!-- -->
+
+
+```r
+print(tab_ols_11, caption.placement = "top") #OLS coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:10 2023
+## \begin{table}[ht]
+## \centering
+## \caption{OLS betas, Model 1} 
+## \label{tab:tab_ols_11}
+## \begin{tabular}{rrrrr}
+##   \hline
+##  & greenhouse\_1.01 & harvested\_rice\_1.01 & permanent\_crops\_1.01 & const \\ 
+##   \hline
+## greenhouse\_1 & 0.14 & 0.08 & 0.14 & -0.08 \\ 
+##   harvested\_rice\_1 & -0.99 & 0.21 & 0.04 & -0.01 \\ 
+##   permanent\_crops\_1 & -0.38 & 0.03 & -0.20 & -0.01 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_ols_12, caption.placement = "top") #OLS error var-covar
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:10 2023
+## \begin{table}[ht]
+## \centering
+## \caption{OLS var-covar, Model 1} 
+## \label{tab:tab_ols_12}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & greenhouse\_1 & harvested\_rice\_1 & permanent\_crops\_1 \\ 
+##   \hline
+## greenhouse\_1 & 0.07 & 0.03 & 0.00 \\ 
+##   harvested\_rice\_1 & 0.03 & 0.71 & 0.12 \\ 
+##   permanent\_crops\_1 & 0.00 & 0.12 & 0.82 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_bayes_A1, caption.placement = "top") #Bayesian coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:10 2023
+## \begin{table}[ht]
+## \centering
+## \caption{Bayesian coefficients, Model 1} 
+## \label{tab:tab_bayes_A1}
+## \begin{tabular}{rrrrr}
+##   \hline
+##  & greenhouse\_1.01 & harvested\_rice\_1.01 & permanent\_crops\_1.01 & const \\ 
+##   \hline
+## greenhouse\_1 & 0.14 & 0.08 & 0.14 & -0.08 \\ 
+##   harvested\_rice\_1 & -0.99 & 0.21 & 0.04 & -0.01 \\ 
+##   permanent\_crops\_1 & -0.38 & 0.02 & -0.20 & -0.01 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_bayes_Sigma1, caption.placement = "top") #Bayesian error var-covar
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:10 2023
+## \begin{table}[ht]
+## \centering
+## \caption{Bayesian var-covar, Model 1} 
+## \label{tab:tab_bayes_Sigma1}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & greenhouse\_1 & harvested\_rice\_1 & permanent\_crops\_1 \\ 
+##   \hline
+## greenhouse\_1 & 0.11 & 0.02 & 0.00 \\ 
+##   harvested\_rice\_1 & 0.02 & 0.69 & 0.11 \\ 
+##   permanent\_crops\_1 & 0.00 & 0.11 & 0.79 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_GIR_11, caption.placement = "top") #GIRF 1 coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:10 2023
+## \begin{table}[ht]
+## \centering
+## \caption{GIRF betas, Model 1} 
+## \label{tab:tab_GIR_11}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & X2.5. & X50. & X97.5. \\ 
+##   \hline
+## 0 & -0.11 & 0.03 & 0.18 \\ 
+##   1 & -0.05 & 0.11 & 0.27 \\ 
+##   2 & -0.07 & 0.02 & 0.14 \\ 
+##   3 & -0.07 & -0.00 & 0.06 \\ 
+##   4 & -0.05 & -0.00 & 0.03 \\ 
+##   5 & -0.03 & -0.00 & 0.02 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_GIR_12, caption.placement = "top") #GIRF 2 coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:10 2023
+## \begin{table}[ht]
+## \centering
+## \caption{GIRF betas, Model 1} 
+## \label{tab:tab_GIR_12}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & X2.5. & X50. & X97.5. \\ 
+##   \hline
+## 0 & -0.11 & 0.03 & 0.18 \\ 
+##   1 & -0.05 & 0.11 & 0.27 \\ 
+##   2 & -0.07 & 0.02 & 0.14 \\ 
+##   3 & -0.07 & -0.00 & 0.06 \\ 
+##   4 & -0.05 & -0.00 & 0.03 \\ 
+##   5 & -0.03 & -0.00 & 0.02 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+
+
+```r
+rm(list = ls()[!ls() %in% c("bayes_1", "bayes_2", "bayes_3")])
+```
+
 
 ## Model 2
 
@@ -842,7 +1010,7 @@ y <- t(bmodel$data$Y)
 x <- t(bmodel$data$Z)
 ```
 
-# OLS estimation
+# OLS estimation, Model 2
 
 
 ```r
@@ -858,9 +1026,12 @@ round(beta_ols, 3) # Round estimates and print
 ```
 
 ```r
-mu_ols <- y - beta_ols %*% x
-mu_sigma_ols <- tcrossprod(mu_ols) / (ncol(y) - nrow(x))
-round(mu_sigma_ols, 2)
+tab_ols_21 <- xtable(round(beta_ols, 3), caption = "OLS betas, Model 2", label = "tab:tab_ols_11")
+
+
+e_ols <- y - beta_ols %*% x
+e_sigma_ols <- tcrossprod(e_ols) / (ncol(y) - nrow(x))
+round(e_sigma_ols, 2)
 ```
 
 ```
@@ -870,7 +1041,11 @@ round(mu_sigma_ols, 2)
 ## oil_imports_1            0.09             0.12          0.13
 ```
 
-# Bayesian estimation
+```r
+tab_ols_22 <- xtable(round(e_sigma_ols, 2), caption = "OLS var-covar, Model 2", label = "tab:tab_ols_12")
+```
+
+# Bayesian estimation, Model 2
 
 
 ```r
@@ -886,7 +1061,7 @@ m <- k * nrow(x) # Number of estimated coefficients
 
 
 ```r
-a_mu_prior <- matrix(0, m) # Vector of prior parameter means
+a_mu_prior <- matrix(c(beta_ols), m) # Vector of prior parameter means
 a_v_i_prior <- diag(1, m) # Inverse of the prior covariance matrix
 
 u_sigma_df_prior <- 2*k # Prior degrees of freedom
@@ -896,7 +1071,7 @@ u_sigma_df_post <- t + u_sigma_df_prior # Posterior degrees of freedom
 
 
 ```r
-u_sigma_i <- solve(mu_sigma_ols)
+u_sigma_i <- solve(e_sigma_ols)
 
 # Data containers for Gibss sampler
 draws_a <- matrix(NA, m, store)
@@ -907,12 +1082,12 @@ draws_sigma <- matrix(NA, k * k, store)
 ```r
 for (draw in 1:iter) {
   # Draw conditional mean parameters
-  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior)
+  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior) #Draw the coefficients from a Normal density
   
   # Draw variance-covariance matrix
   u <- y - matrix(a, k) %*% x # Obtain residuals
   u_sigma_scale_post <- solve(u_sigma_scale_prior + tcrossprod(u))
-  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k)
+  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k) #Draw from the iW density
   u_sigma <- solve(u_sigma_i) # Invert Sigma_i to obtain Sigma
   
   # Store draws
@@ -935,12 +1110,14 @@ A # Print
 
 ```
 ##                  greenhouse_1.01 energy_imp_dep_1.01 oil_imports_1.01  const
-## greenhouse_1              -0.054               0.125            0.180 -0.067
-## energy_imp_dep_1           0.113              -0.491           -0.018 -0.117
-## oil_imports_1              0.003              -0.018           -0.047 -0.104
+## greenhouse_1              -0.061               0.119            0.197 -0.067
+## energy_imp_dep_1           0.136              -0.510           -0.018 -0.119
+## oil_imports_1              0.007              -0.024           -0.043 -0.105
 ```
 
 ```r
+tab_bayes_A2 <- xtable(round(A, 3), caption = "Bayesian coefficients, Model 2", label = "tab:tab_bayes_A2")
+
 Sigma <- rowMeans(draws_sigma) # Obtain means for every row
 Sigma <- matrix(Sigma, k) # Transform mean vector into a matrix
 Sigma <- round(Sigma, 2) # Round values
@@ -954,6 +1131,10 @@ Sigma # Print
 ## greenhouse_1             0.12             0.08          0.08
 ## energy_imp_dep_1         0.08             0.33          0.11
 ## oil_imports_1            0.08             0.11          0.16
+```
+
+```r
+tab_bayes_Sigma2 <- xtable(round(Sigma, 3), caption = "Bayesian var-covar, Model 2", label = "tab:tab_bayes_Sigma2")
 ```
 
 
@@ -975,64 +1156,64 @@ summary(bvar_model)
 ## Variable: greenhouse_1 
 ## 
 ##                         Mean      SD  Naive SD Time-series SD    2.5%      50%
-## greenhouse_1.01     -0.05360 0.28652 0.0021356      0.0021948 -0.6237 -0.05467
-## energy_imp_dep_1.01  0.12471 0.11927 0.0008890      0.0008743 -0.1094  0.12451
-## oil_imports_1.01     0.18042 0.30494 0.0022729      0.0022729 -0.4147  0.17660
-## const               -0.06654 0.06572 0.0004899      0.0004899 -0.1958 -0.06693
+## greenhouse_1.01     -0.06147 0.28651 0.0021355      0.0021961 -0.6319 -0.06235
+## energy_imp_dep_1.01  0.11905 0.11925 0.0008888      0.0008736 -0.1162  0.11884
+## oil_imports_1.01     0.19681 0.30494 0.0022729      0.0022729 -0.3974  0.19296
+## const               -0.06727 0.06572 0.0004899      0.0004899 -0.1965 -0.06762
 ##                       97.5%
-## greenhouse_1.01     0.51191
-## energy_imp_dep_1.01 0.36159
-## oil_imports_1.01    0.78449
-## const               0.06488
+## greenhouse_1.01     0.50296
+## energy_imp_dep_1.01 0.35497
+## oil_imports_1.01    0.80212
+## const               0.06413
 ## 
 ## Variable: energy_imp_dep_1 
 ## 
-##                        Mean     SD  Naive SD Time-series SD    2.5%      50%
-## greenhouse_1.01      0.1130 0.4393 0.0032746      0.0034852 -0.7469  0.11653
-## energy_imp_dep_1.01 -0.4911 0.1987 0.0014811      0.0014811 -0.8772 -0.49175
-## oil_imports_1.01    -0.0181 0.4657 0.0034708      0.0034708 -0.9303 -0.01907
-## const               -0.1175 0.1094 0.0008153      0.0008153 -0.3317 -0.11889
+##                         Mean     SD  Naive SD Time-series SD    2.5%     50%
+## greenhouse_1.01      0.13618 0.4393 0.0032741      0.0034835 -0.7245  0.1388
+## energy_imp_dep_1.01 -0.51011 0.1986 0.0014800      0.0014800 -0.8996 -0.5103
+## oil_imports_1.01    -0.01833 0.4656 0.0034704      0.0034704 -0.9292 -0.0190
+## const               -0.11901 0.1094 0.0008151      0.0008151 -0.3334 -0.1204
 ##                        97.5%
-## greenhouse_1.01      0.97849
-## energy_imp_dep_1.01 -0.09756
-## oil_imports_1.01     0.89352
-## const                0.10118
+## greenhouse_1.01      1.00075
+## energy_imp_dep_1.01 -0.11971
+## oil_imports_1.01     0.89426
+## const                0.09942
 ## 
 ## Variable: oil_imports_1 
 ## 
 ##                          Mean      SD  Naive SD Time-series SD    2.5%
-## greenhouse_1.01      0.003282 0.32280 0.0024060      0.0024060 -0.6283
-## energy_imp_dep_1.01 -0.017756 0.13784 0.0010274      0.0010274 -0.2895
-## oil_imports_1.01    -0.046976 0.34512 0.0025724      0.0025724 -0.7272
-## const               -0.103620 0.07529 0.0005612      0.0005612 -0.2513
+## greenhouse_1.01      0.006738 0.32277 0.0024058      0.0024058 -0.6247
+## energy_imp_dep_1.01 -0.023931 0.13783 0.0010273      0.0010273 -0.2959
+## oil_imports_1.01    -0.043268 0.34512 0.0025724      0.0025724 -0.7240
+## const               -0.104702 0.07528 0.0005611      0.0005611 -0.2525
 ##                           50%   97.5%
-## greenhouse_1.01      0.001218 0.64572
-## energy_imp_dep_1.01 -0.016354 0.25535
-## oil_imports_1.01    -0.044841 0.62450
-## const               -0.103877 0.04835
+## greenhouse_1.01      0.005053 0.65026
+## energy_imp_dep_1.01 -0.022274 0.24844
+## oil_imports_1.01    -0.041763 0.62531
+## const               -0.104972 0.04733
 ## 
 ## Variance-covariance matrix:
 ## 
 ##                                      Mean      SD  Naive SD Time-series SD
-## greenhouse_1_greenhouse_1         0.11912 0.03342 0.0002491      0.0002777
-## greenhouse_1_energy_imp_dep_1     0.08499 0.04165 0.0003104      0.0003439
-## greenhouse_1_oil_imports_1        0.07893 0.03083 0.0002298      0.0002566
-## energy_imp_dep_1_greenhouse_1     0.08499 0.04165 0.0003104      0.0003439
-## energy_imp_dep_1_energy_imp_dep_1 0.33246 0.09120 0.0006798      0.0007390
-## energy_imp_dep_1_oil_imports_1    0.10829 0.04856 0.0003620      0.0004004
-## oil_imports_1_greenhouse_1        0.07893 0.03083 0.0002298      0.0002566
-## oil_imports_1_energy_imp_dep_1    0.10829 0.04856 0.0003620      0.0004004
-## oil_imports_1_oil_imports_1       0.15657 0.04363 0.0003252      0.0003783
+## greenhouse_1_greenhouse_1         0.11911 0.03342 0.0002491      0.0002777
+## greenhouse_1_energy_imp_dep_1     0.08497 0.04163 0.0003103      0.0003436
+## greenhouse_1_oil_imports_1        0.07893 0.03084 0.0002298      0.0002566
+## energy_imp_dep_1_greenhouse_1     0.08497 0.04163 0.0003103      0.0003436
+## energy_imp_dep_1_energy_imp_dep_1 0.33229 0.09109 0.0006790      0.0007373
+## energy_imp_dep_1_oil_imports_1    0.10825 0.04855 0.0003619      0.0004002
+## oil_imports_1_greenhouse_1        0.07893 0.03084 0.0002298      0.0002566
+## oil_imports_1_energy_imp_dep_1    0.10825 0.04855 0.0003619      0.0004002
+## oil_imports_1_oil_imports_1       0.15656 0.04364 0.0003252      0.0003783
 ##                                      2.5%     50%  97.5%
-## greenhouse_1_greenhouse_1         0.07023 0.11351 0.1992
-## greenhouse_1_energy_imp_dep_1     0.01771 0.07971 0.1808
-## greenhouse_1_oil_imports_1        0.03135 0.07496 0.1501
-## energy_imp_dep_1_greenhouse_1     0.01771 0.07971 0.1808
-## energy_imp_dep_1_energy_imp_dep_1 0.19943 0.31761 0.5503
-## energy_imp_dep_1_oil_imports_1    0.03149 0.10187 0.2220
-## oil_imports_1_greenhouse_1        0.03135 0.07496 0.1501
-## oil_imports_1_energy_imp_dep_1    0.03149 0.10187 0.2220
-## oil_imports_1_oil_imports_1       0.09250 0.14957 0.2617
+## greenhouse_1_greenhouse_1         0.07024 0.11351 0.1996
+## greenhouse_1_energy_imp_dep_1     0.01759 0.07963 0.1808
+## greenhouse_1_oil_imports_1        0.03145 0.07492 0.1506
+## energy_imp_dep_1_greenhouse_1     0.01759 0.07963 0.1808
+## energy_imp_dep_1_energy_imp_dep_1 0.19957 0.31739 0.5492
+## energy_imp_dep_1_oil_imports_1    0.03146 0.10180 0.2218
+## oil_imports_1_greenhouse_1        0.03145 0.07492 0.1506
+## oil_imports_1_energy_imp_dep_1    0.03146 0.10180 0.2218
+## oil_imports_1_oil_imports_1       0.09263 0.14955 0.2618
 ```
 
 
@@ -1041,7 +1222,7 @@ str(draws_a)
 ```
 
 ```
-##  num [1:12, 1:18000] -0.029 0.033 -0.0125 0.2225 -0.4475 ...
+##  num [1:12, 1:18000] -0.0345 0.05563 -0.00728 0.21593 -0.46673 ...
 ```
 
 ```r
@@ -1078,13 +1259,14 @@ round(GIR_1, 2)
 ## 0  0.06  0.26  0.45
 ## 1 -0.07  0.17  0.41
 ## 2 -0.26 -0.05  0.12
-## 3 -0.05  0.04  0.20
-## 4 -0.15 -0.01  0.06
-## 5 -0.03  0.01  0.13
+## 3 -0.05  0.04  0.21
+## 4 -0.16 -0.01  0.06
+## 5 -0.03  0.01  0.15
 ```
 
 ```r
-plot(GIR_1, main = "GIRF, Impulse = energy imports dep., Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+tab_GIR_21 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 2", label = "tab:tab_GIR_21")
+plot(GIR_1, main = "GIRF, Impulse = harvested_rice, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ![](BVAR-TS-model_files/figure-html/IRF Analysis model 2-1.png)<!-- -->
@@ -1101,15 +1283,16 @@ round(GIR_2, 2)
 ## Frequency = 1 
 ##    2.5%   50% 97.5%
 ## 0  0.24  0.51  0.77
-## 1 -0.20  0.24  0.68
-## 2 -0.35 -0.03  0.24
-## 3 -0.10  0.04  0.28
-## 4 -0.19 -0.01  0.10
-## 5 -0.05  0.01  0.17
+## 1 -0.19  0.25  0.68
+## 2 -0.36 -0.03  0.24
+## 3 -0.10  0.04  0.29
+## 4 -0.20 -0.01  0.10
+## 5 -0.05  0.01  0.18
 ```
 
 ```r
-plot(GIR_2, main = "GIRF, Impulse = oil imports, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+tab_GIR_22 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 2", label = "tab:tab_GIR_22")
+plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ![](BVAR-TS-model_files/figure-html/IRF Analysis model 2-2.png)<!-- -->
@@ -1117,10 +1300,201 @@ plot(GIR_2, main = "GIRF, Impulse = oil imports, Response = greenhouse gas", xla
 
 ```r
 bvar_fevd_gir <- bvartools::fevd(bvar_model, response = "greenhouse_1", type = "gir")
+round(bvar_fevd_gir, 2)
+```
+
+```
+## Time Series:
+## Start = 0 
+## End = 5 
+## Frequency = 1 
+##   greenhouse_1 energy_imp_dep_1 oil_imports_1
+## 0         0.34             0.20          0.16
+## 1         0.30             0.25          0.18
+## 2         0.29             0.27          0.18
+## 3         0.28             0.27          0.18
+## 4         0.28             0.28          0.18
+## 5         0.28             0.28          0.18
+```
+
+```r
 plot(bvar_fevd_gir, main = "GIR-based FEVD of Net Greenhouse gas emissions per capita")
 ```
 
 ![](BVAR-TS-model_files/figure-html/Error Variance Decomposition model 2-1.png)<!-- -->
+
+
+
+```r
+print(tab_ols_21, caption.placement = "top") #OLS coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:22 2023
+## \begin{table}[ht]
+## \centering
+## \caption{OLS betas, Model 2} 
+## \label{tab:tab_ols_11}
+## \begin{tabular}{rrrrr}
+##   \hline
+##  & greenhouse\_1.01 & energy\_imp\_dep\_1.01 & oil\_imports\_1.01 & const \\ 
+##   \hline
+## greenhouse\_1 & -0.06 & 0.12 & 0.19 & -0.07 \\ 
+##   energy\_imp\_dep\_1 & 0.14 & -0.51 & -0.02 & -0.12 \\ 
+##   oil\_imports\_1 & 0.01 & -0.02 & -0.04 & -0.10 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_ols_22, caption.placement = "top") #OLS error var-covar
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:22 2023
+## \begin{table}[ht]
+## \centering
+## \caption{OLS var-covar, Model 2} 
+## \label{tab:tab_ols_12}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & greenhouse\_1 & energy\_imp\_dep\_1 & oil\_imports\_1 \\ 
+##   \hline
+## greenhouse\_1 & 0.09 & 0.09 & 0.09 \\ 
+##   energy\_imp\_dep\_1 & 0.09 & 0.33 & 0.12 \\ 
+##   oil\_imports\_1 & 0.09 & 0.12 & 0.13 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_bayes_A2, caption.placement = "top") #Bayesian coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:22 2023
+## \begin{table}[ht]
+## \centering
+## \caption{Bayesian coefficients, Model 2} 
+## \label{tab:tab_bayes_A2}
+## \begin{tabular}{rrrrr}
+##   \hline
+##  & greenhouse\_1.01 & energy\_imp\_dep\_1.01 & oil\_imports\_1.01 & const \\ 
+##   \hline
+## greenhouse\_1 & -0.06 & 0.12 & 0.20 & -0.07 \\ 
+##   energy\_imp\_dep\_1 & 0.14 & -0.51 & -0.02 & -0.12 \\ 
+##   oil\_imports\_1 & 0.01 & -0.02 & -0.04 & -0.10 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_bayes_Sigma2, caption.placement = "top") #Bayesian error var-covar
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:22 2023
+## \begin{table}[ht]
+## \centering
+## \caption{Bayesian var-covar, Model 2} 
+## \label{tab:tab_bayes_Sigma2}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & greenhouse\_1 & energy\_imp\_dep\_1 & oil\_imports\_1 \\ 
+##   \hline
+## greenhouse\_1 & 0.12 & 0.08 & 0.08 \\ 
+##   energy\_imp\_dep\_1 & 0.08 & 0.33 & 0.11 \\ 
+##   oil\_imports\_1 & 0.08 & 0.11 & 0.16 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_GIR_21, caption.placement = "top") #GIRF 1 coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:22 2023
+## \begin{table}[ht]
+## \centering
+## \caption{GIRF betas, Model 2} 
+## \label{tab:tab_GIR_21}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & X2.5. & X50. & X97.5. \\ 
+##   \hline
+## 0 & 0.06 & 0.26 & 0.45 \\ 
+##   1 & -0.07 & 0.17 & 0.41 \\ 
+##   2 & -0.26 & -0.06 & 0.12 \\ 
+##   3 & -0.05 & 0.04 & 0.21 \\ 
+##   4 & -0.16 & -0.01 & 0.06 \\ 
+##   5 & -0.03 & 0.01 & 0.14 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_GIR_22, caption.placement = "top") #GIRF 2 coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:22 2023
+## \begin{table}[ht]
+## \centering
+## \caption{GIRF betas, Model 2} 
+## \label{tab:tab_GIR_22}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & X2.5. & X50. & X97.5. \\ 
+##   \hline
+## 0 & 0.06 & 0.26 & 0.45 \\ 
+##   1 & -0.07 & 0.17 & 0.41 \\ 
+##   2 & -0.26 & -0.06 & 0.12 \\ 
+##   3 & -0.05 & 0.04 & 0.21 \\ 
+##   4 & -0.16 & -0.01 & 0.06 \\ 
+##   5 & -0.03 & 0.01 & 0.14 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+
+
+```r
+rm(list = ls()[!ls() %in% c("bayes_1", "bayes_2", "bayes_3")])
+```
+
 
 ## Model 3
 
@@ -1189,7 +1563,7 @@ y <- t(bmodel$data$Y)
 x <- t(bmodel$data$Z)
 ```
 
-# OLS estimation
+# OLS estimation, Model 3
 
 
 ```r
@@ -1205,9 +1579,12 @@ round(beta_ols, 3) # Round estimates and print
 ```
 
 ```r
-mu_ols <- y - beta_ols %*% x
-mu_sigma_ols <- tcrossprod(mu_ols) / (ncol(y) - nrow(x))
-round(mu_sigma_ols, 2)
+tab_ols_31 <- xtable(round(beta_ols, 3), caption = "OLS betas, Model 3", label = "tab:tab_ols_31")
+
+
+e_ols <- y - beta_ols %*% x
+e_sigma_ols <- tcrossprod(e_ols) / (ncol(y) - nrow(x))
+round(e_sigma_ols, 2)
 ```
 
 ```
@@ -1217,7 +1594,11 @@ round(mu_sigma_ols, 2)
 ## fertilizer_1         0.07     0.06         0.32
 ```
 
-# Bayesian estimation
+```r
+tab_ols_32 <- xtable(round(e_sigma_ols, 2), caption = "OLS var-covar, Model 3", label = "tab:tab_ols_32")
+```
+
+# Bayesian estimation, Model 3
 
 
 ```r
@@ -1243,7 +1624,7 @@ u_sigma_df_post <- t + u_sigma_df_prior # Posterior degrees of freedom
 
 
 ```r
-u_sigma_i <- solve(mu_sigma_ols)
+u_sigma_i <- solve(e_sigma_ols)
 
 # Data containers for Gibss sampler
 draws_a <- matrix(NA, m, store)
@@ -1254,12 +1635,12 @@ draws_sigma <- matrix(NA, k * k, store)
 ```r
 for (draw in 1:iter) {
   # Draw conditional mean parameters
-  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior)
+  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior) #Draw the coefficients from a Normal density
   
   # Draw variance-covariance matrix
   u <- y - matrix(a, k) %*% x # Obtain residuals
   u_sigma_scale_post <- solve(u_sigma_scale_prior + tcrossprod(u))
-  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k)
+  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k) #Draw from the iW density
   u_sigma <- solve(u_sigma_i) # Invert Sigma_i to obtain Sigma
   
   # Store draws
@@ -1288,6 +1669,8 @@ A # Print
 ```
 
 ```r
+tab_bayes_A3 <- xtable(round(A, 3), caption = "Bayesian coefficients, Model 3", label = "tab:tab_bayes_A3")
+
 Sigma <- rowMeans(draws_sigma) # Obtain means for every row
 Sigma <- matrix(Sigma, k) # Transform mean vector into a matrix
 Sigma <- round(Sigma, 2) # Round values
@@ -1301,6 +1684,10 @@ Sigma # Print
 ## greenhouse_1         0.12     0.08         0.06
 ## GDP_pc_1             0.08     0.22         0.05
 ## fertilizer_1         0.06     0.05         0.33
+```
+
+```r
+tab_bayes_Sigma3 <- xtable(round(Sigma, 3), caption = "Bayesian var-covar, Model 3", label = "tab:tab_bayes_Sigma3")
 ```
 
 
@@ -1426,7 +1813,8 @@ round(GIR_1, 2)
 ```
 
 ```r
-plot(GIR_1, main = "GIRF, Impulse = GDP per capita, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+tab_GIR_31 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 3", label = "tab:tab_GIR_31")
+plot(GIR_1, main = "GIRF, Impulse = harvested_rice, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ![](BVAR-TS-model_files/figure-html/IRF Analysis model 3-1.png)<!-- -->
@@ -1451,7 +1839,8 @@ round(GIR_2, 2)
 ```
 
 ```r
-plot(GIR_2, main = "GIRF, Impulse = fertilizer_kg/ha, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+tab_GIR_32 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 3", label = "tab:tab_GIR_32")
+plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ![](BVAR-TS-model_files/figure-html/IRF Analysis model 3-2.png)<!-- -->
@@ -1459,7 +1848,189 @@ plot(GIR_2, main = "GIRF, Impulse = fertilizer_kg/ha, Response = greenhouse gas"
 
 ```r
 bvar_fevd_gir <- bvartools::fevd(bvar_model, response = "greenhouse_1", type = "gir")
+round(bvar_fevd_gir, 2)
+```
+
+```
+## Time Series:
+## Start = 0 
+## End = 5 
+## Frequency = 1 
+##   greenhouse_1 GDP_pc_1 fertilizer_1
+## 0         0.34     0.19         0.13
+## 1         0.28     0.25         0.16
+## 2         0.27     0.25         0.17
+## 3         0.27     0.25         0.17
+## 4         0.26     0.25         0.17
+## 5         0.26     0.25         0.17
+```
+
+```r
 plot(bvar_fevd_gir, main = "GIR-based FEVD of Net Greenhouse gas emissions per capita")
 ```
 
 ![](BVAR-TS-model_files/figure-html/Error Variance Decomposition model 3-1.png)<!-- -->
+
+```r
+print(tab_ols_31, caption.placement = "top") #OLS coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:39 2023
+## \begin{table}[ht]
+## \centering
+## \caption{OLS betas, Model 3} 
+## \label{tab:tab_ols_31}
+## \begin{tabular}{rrrrr}
+##   \hline
+##  & greenhouse\_1.01 & GDP\_pc\_1.01 & fertilizer\_1.01 & const \\ 
+##   \hline
+## greenhouse\_1 & -0.25 & 0.39 & 0.10 & -0.13 \\ 
+##   GDP\_pc\_1 & 0.17 & 0.17 & 0.01 & 0.03 \\ 
+##   fertilizer\_1 & -0.52 & 0.29 & 0.35 & -0.11 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_ols_32, caption.placement = "top") #OLS error var-covar
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:39 2023
+## \begin{table}[ht]
+## \centering
+## \caption{OLS var-covar, Model 3} 
+## \label{tab:tab_ols_32}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & greenhouse\_1 & GDP\_pc\_1 & fertilizer\_1 \\ 
+##   \hline
+## greenhouse\_1 & 0.09 & 0.09 & 0.07 \\ 
+##   GDP\_pc\_1 & 0.09 & 0.20 & 0.06 \\ 
+##   fertilizer\_1 & 0.07 & 0.06 & 0.32 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_bayes_A3, caption.placement = "top") #Bayesian coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:39 2023
+## \begin{table}[ht]
+## \centering
+## \caption{Bayesian coefficients, Model 3} 
+## \label{tab:tab_bayes_A3}
+## \begin{tabular}{rrrrr}
+##   \hline
+##  & greenhouse\_1.01 & GDP\_pc\_1.01 & fertilizer\_1.01 & const \\ 
+##   \hline
+## greenhouse\_1 & -0.18 & 0.33 & 0.10 & -0.12 \\ 
+##   GDP\_pc\_1 & 0.19 & 0.14 & 0.01 & 0.03 \\ 
+##   fertilizer\_1 & -0.35 & 0.17 & 0.31 & -0.09 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_bayes_Sigma3, caption.placement = "top") #Bayesian error var-covar
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:39 2023
+## \begin{table}[ht]
+## \centering
+## \caption{Bayesian var-covar, Model 3} 
+## \label{tab:tab_bayes_Sigma3}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & greenhouse\_1 & GDP\_pc\_1 & fertilizer\_1 \\ 
+##   \hline
+## greenhouse\_1 & 0.12 & 0.08 & 0.06 \\ 
+##   GDP\_pc\_1 & 0.08 & 0.22 & 0.05 \\ 
+##   fertilizer\_1 & 0.06 & 0.05 & 0.33 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_GIR_31, caption.placement = "top") #GIRF 1 coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:39 2023
+## \begin{table}[ht]
+## \centering
+## \caption{GIRF betas, Model 3} 
+## \label{tab:tab_GIR_31}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & X2.5. & X50. & X97.5. \\ 
+##   \hline
+## 0 & 0.15 & 0.38 & 0.61 \\ 
+##   1 & -0.12 & 0.28 & 0.68 \\ 
+##   2 & -0.24 & 0.03 & 0.36 \\ 
+##   3 & -0.06 & 0.04 & 0.36 \\ 
+##   4 & -0.15 & 0.00 & 0.22 \\ 
+##   5 & -0.02 & 0.01 & 0.26 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+cat("\n")
+```
+
+```r
+print(tab_GIR_32, caption.placement = "top") #GIRF 2 coefficients
+```
+
+```
+## % latex table generated in R 4.2.2 by xtable 1.8-4 package
+## % Thu May  4 08:16:39 2023
+## \begin{table}[ht]
+## \centering
+## \caption{GIRF betas, Model 3} 
+## \label{tab:tab_GIR_32}
+## \begin{tabular}{rrrr}
+##   \hline
+##  & X2.5. & X50. & X97.5. \\ 
+##   \hline
+## 0 & 0.15 & 0.38 & 0.61 \\ 
+##   1 & -0.12 & 0.28 & 0.68 \\ 
+##   2 & -0.24 & 0.03 & 0.36 \\ 
+##   3 & -0.06 & 0.04 & 0.36 \\ 
+##   4 & -0.15 & 0.00 & 0.22 \\ 
+##   5 & -0.02 & 0.01 & 0.26 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
