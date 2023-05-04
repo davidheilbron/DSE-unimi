@@ -322,15 +322,15 @@ A <- matrix(A, k) # Transform mean vector into a matrix
 A <- round(A, 3) # Round values
 dimnames(A) <- list(dimnames(y)[[1]], dimnames(x)[[1]]) # Rename matrix dimensions
 
-A # Print
-tab_bayes_A1 <- xtable(round(A, 3), caption = "Bayesian coefficients, Model 1", label = "tab:tab_bayes_A1")
+round(A,2) # Print
+tab_bayes_A1 <- xtable(round(A, 2), caption = "Bayesian coefficients, Model 1", label = "tab:tab_bayes_A1")
 
 Sigma <- rowMeans(draws_sigma) # Obtain means for every row
 Sigma <- matrix(Sigma, k) # Transform mean vector into a matrix
 Sigma <- round(Sigma, 2) # Round values
 dimnames(Sigma) <- list(dimnames(y)[[1]], dimnames(y)[[1]]) # Rename matrix dimensions
 
-Sigma # Print
+round(Sigma,3) # Print
 tab_bayes_Sigma1 <- xtable(round(Sigma, 3), caption = "Bayesian var-covar, Model 1", label = "tab:tab_bayes_Sigma1")
 ```
 

@@ -357,103 +357,17 @@ display: none;
 
 <div id="data-preprocessing" class="section level2">
 <h2>Data Preprocessing</h2>
-<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
-## ✔ ggplot2 3.4.0      ✔ purrr   1.0.0 
-## ✔ tibble  3.1.8      ✔ dplyr   1.0.10
-## ✔ tidyr   1.2.1      ✔ stringr 1.5.0 
-## ✔ readr   2.1.3      ✔ forcats 0.5.2 
-## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()</code></pre>
 <pre><code>## Warning: package &#39;xts&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Loading required package: zoo</code></pre>
 <pre><code>## Warning: package &#39;zoo&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## 
-## Attaching package: &#39;zoo&#39;
-## 
-## The following objects are masked from &#39;package:base&#39;:
-## 
-##     as.Date, as.Date.numeric
-## 
-## 
-## ################################### WARNING ###################################
-## # We noticed you have dplyr installed. The dplyr lag() function breaks how    #
-## # base R&#39;s lag() function is supposed to work, which breaks lag(my_xts).      #
-## #                                                                             #
-## # Calls to lag(my_xts) that you enter or source() into this session won&#39;t     #
-## # work correctly.                                                             #
-## #                                                                             #
-## # All package code is unaffected because it is protected by the R namespace   #
-## # mechanism.                                                                  #
-## #                                                                             #
-## # Set `options(xts.warn_dplyr_breaks_lag = FALSE)` to suppress this warning.  #
-## #                                                                             #
-## # You can use stats::lag() to make sure you&#39;re not using dplyr::lag(), or you #
-## # can add conflictRules(&#39;dplyr&#39;, exclude = &#39;lag&#39;) to your .Rprofile to stop   #
-## # dplyr from breaking base R&#39;s lag() function.                                #
-## ################################### WARNING ###################################
-## 
-## Attaching package: &#39;xts&#39;
-## 
-## The following objects are masked from &#39;package:dplyr&#39;:
-## 
-##     first, last</code></pre>
 <pre><code>## Warning: package &#39;imputeTS&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Registered S3 method overwritten by &#39;quantmod&#39;:
-##   method            from
-##   as.zoo.data.frame zoo 
-## 
-## Attaching package: &#39;imputeTS&#39;
-## 
-## The following object is masked from &#39;package:zoo&#39;:
-## 
-##     na.locf</code></pre>
 <pre><code>## Warning: package &#39;MTS&#39; was built under R version 4.2.3</code></pre>
 <pre><code>## Warning: package &#39;tseries&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## 
-## Attaching package: &#39;tseries&#39;
-## 
-## The following object is masked from &#39;package:imputeTS&#39;:
-## 
-##     na.remove</code></pre>
 <pre><code>## Warning: package &#39;vars&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Loading required package: MASS
-## 
-## Attaching package: &#39;MASS&#39;
-## 
-## The following object is masked from &#39;package:dplyr&#39;:
-## 
-##     select
-## 
-## Loading required package: strucchange</code></pre>
 <pre><code>## Warning: package &#39;strucchange&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Loading required package: sandwich</code></pre>
 <pre><code>## Warning: package &#39;sandwich&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## 
-## Attaching package: &#39;strucchange&#39;
-## 
-## The following object is masked from &#39;package:stringr&#39;:
-## 
-##     boundary
-## 
-## Loading required package: urca</code></pre>
 <pre><code>## Warning: package &#39;urca&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Loading required package: lmtest
-## 
-## Attaching package: &#39;vars&#39;
-## 
-## The following object is masked from &#39;package:MTS&#39;:
-## 
-##     VAR</code></pre>
 <pre><code>## Warning: package &#39;bvartools&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Loading required package: coda</code></pre>
 <pre><code>## Warning: package &#39;coda&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## 
-## Attaching package: &#39;bvartools&#39;
-## 
-## The following objects are masked from &#39;package:vars&#39;:
-## 
-##     fevd, irf</code></pre>
 <pre class="r"><code>data &lt;- data %&gt;% 
   dplyr::mutate(livestock_heads = Pigs_heads + Head_sheep + Head_goat + 
            Chicken_heads + Turkeys_heads + Cattle_heads + Buffalo_head) 
@@ -723,23 +637,23 @@ A &lt;- matrix(A, k) # Transform mean vector into a matrix
 A &lt;- round(A, 3) # Round values
 dimnames(A) &lt;- list(dimnames(y)[[1]], dimnames(x)[[1]]) # Rename matrix dimensions
 
-A # Print</code></pre>
+round(A,2) # Print</code></pre>
 <pre><code>##                   greenhouse_1.01 harvested_rice_1.01 permanent_crops_1.01
-## greenhouse_1                0.136               0.084                0.136
-## harvested_rice_1           -0.994               0.211                0.037
-## permanent_crops_1          -0.384               0.024               -0.203
-##                    const
-## greenhouse_1      -0.082
-## harvested_rice_1  -0.010
-## permanent_crops_1 -0.009</code></pre>
-<pre class="r"><code>tab_bayes_A1 &lt;- xtable(round(A, 3), caption = &quot;Bayesian coefficients, Model 1&quot;, label = &quot;tab:tab_bayes_A1&quot;)
+## greenhouse_1                 0.14                0.08                 0.14
+## harvested_rice_1            -0.99                0.21                 0.04
+## permanent_crops_1           -0.38                0.02                -0.20
+##                   const
+## greenhouse_1      -0.08
+## harvested_rice_1  -0.01
+## permanent_crops_1 -0.01</code></pre>
+<pre class="r"><code>tab_bayes_A1 &lt;- xtable(round(A, 2), caption = &quot;Bayesian coefficients, Model 1&quot;, label = &quot;tab:tab_bayes_A1&quot;)
 
 Sigma &lt;- rowMeans(draws_sigma) # Obtain means for every row
 Sigma &lt;- matrix(Sigma, k) # Transform mean vector into a matrix
 Sigma &lt;- round(Sigma, 2) # Round values
 dimnames(Sigma) &lt;- list(dimnames(y)[[1]], dimnames(y)[[1]]) # Rename matrix dimensions
 
-Sigma # Print</code></pre>
+round(Sigma,3) # Print</code></pre>
 <pre><code>##                   greenhouse_1 harvested_rice_1 permanent_crops_1
 ## greenhouse_1              0.11             0.02              0.00
 ## harvested_rice_1          0.02             0.69              0.11
@@ -879,7 +793,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
 <pre class="r"><code>print(tab_ols_11, caption.placement = &quot;top&quot;) #OLS coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS betas, Model 1} 
@@ -897,7 +811,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_ols_12, caption.placement = &quot;top&quot;) #OLS error var-covar</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS var-covar, Model 1} 
@@ -915,7 +829,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_bayes_A1, caption.placement = &quot;top&quot;) #Bayesian coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian coefficients, Model 1} 
@@ -933,7 +847,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_bayes_Sigma1, caption.placement = &quot;top&quot;) #Bayesian error var-covar</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian var-covar, Model 1} 
@@ -951,7 +865,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_GIR_11, caption.placement = &quot;top&quot;) #GIRF 1 coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 1} 
@@ -972,7 +886,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_GIR_12, caption.placement = &quot;top&quot;) #GIRF 2 coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 1} 
@@ -1248,7 +1162,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAqAAAAHgCAMAAABNUi8GAAAA4VBMVEUAAAAAADoAAGYAOjoAOmYAOpAAZmYAZpAAZrY6AAA6ADo6AGY6OgA6Ojo6OmY6OpA6ZmY6ZpA6ZrY6kLY6kNtNTU1mAABmADpmOgBmOjpmZgBmZmZmkJBmkLZmkNtmtrZmtttmtv+QOgCQZgCQZjqQkGaQkLaQtpCQttuQtv+Q27aQ29uQ2/+urq62ZgC2Zjq2ZpC2kDq2kGa2tma225C227a229u22/+2/7a2/9u2///bkDrbkGbbtmbbtpDb27bb29vb2//b/9vb///m5ub/tmb/25D/27b//7b//9v////GQvLkAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAaZElEQVR4nO2di3rjxmFGofVuKzm2U7uivOklWSnexk0lummbbrKM7aQStRLf/4GKmcFlAAw4BDkUfoDnfJ93YRIY/Jg5O7gQwGQbAGGysQMAbANBQRoEBWkQFKRBUJAGQUEaBAVpEBSkQVCQBkFBGgQFaRAUpEFQkAZBQRoEBWkQFKRBUJAGQUEaBAVpEBSkQVCQBkFBGgQFaRAUpEFQkAZBQRoEBWkQFKRBUJAGQUEaBAVpEBSk2SboT7/Ksuyzb/6WTz7fZG/u8z8sZ199qOZZZq8+Dl1nvcwqK8g/qKazN/93k53d2hkeL/L1Ft+cff0hWNzzDxdZ9k1Rcnad//V0lZ235vlPL6W3XQNYlZnGwrbB4K+OnKZRscegX9BSx+zsuiVo5jXVUQQ1Sl6WM1zW35gkXdbmq8uiZFtrHUE/va1TNrZrAAgaWKVfscehV9DaRmNPS9C6/Y8jaG6YrfB8jY1vgop45uSCmi60I6iXsrldAxhdUEX2af5h9Aqa90tn73JJfrww3VMpqNXG7nfrhH/M95hu7/vT27zZv7LN+Jcvqn3y8w/55Df3bvIie/29L2jd6Ct/W5fui3xN59U3P7/1/mHY/fRn/3rvpCyLWTrtCkGrFS89HZvbZRL87m326kMzZTmZf/sf+f+8vm1Ne6sv2ihf5WXvZm/K/3996+YOV9SmsZjZiJ++yMNu/nJh11pUv7dANVm2TJ2qkba1jqLNXrdiVlXh+DFf6LN3zWb1lrSrLCvW257U9An6XB8Gfpm3Z0PQPKcnaN0bretublV/mle04fVHr/eKCrp2O+2V7RDLb8p+1c1ddLYdQfMFnaD1ij1BW9tVlGP77DKlN1n23d4muXLq1TcEDW92WaGmoC/Ml+GK2hTbWCxWTGXZF8UMrvq9BerJomW8VIHk1TqW3nedjS1ruJjpstGs3pK+oN4cyekTtLWX3NKDZm8+bH40fVv+9d/fmy+dIffm00vbgB/cp2ZTz+/NP9nOLv7amy520q7eXUMU89cOuwirshOsd/Gv/imfx4X3Vlz32e29/8rm/2tr5nJyZXuLcjVmTjftr94TtGezLW7bl2bbeyqq3IIP1Vf5n/lX2Tu3Jlv93gLepGuZZqVUyQPrMCuxbdbaWFsVZdx/vP901UzrL+lWuSyaqZojOX2CtlbXPgatviv2xaUBP//XFyZ9vvTr/3UzFPs+61bVllFB3fl4EcITtFSxWN/SHaL6gv5Pvoy1sLviwHYVfbQ/s7+c+7Y80Cj+5Vw2V+8J2rPZXuJq27sV1V7M7S/cnza1bQNvAW/Ss6WqlCp5ex3ltY5lcGPrmjRdw9duwSKtv2RjlfUcyYkIui66/Zag5/du32A6+WKXZ3r974pvi/2ZPRrKCyp3APmn5/XGbzbbBDUdTml/V9CyL7cfNAX9mC/0+yvXLtWepyNouV3lwt7M/nKrcjd4vvGnG6v3BA1vdiOx63JCFVXGKxerjlPON56g3gLNyXoHt2olb69j47VZd2M3jbh2ukrrL+kL6s2RnMguPijo6+83m1rQqlLM16//7We74Ke3brP/vTyCqau8KWjPMajtav50VRbeFrQsaW1sbgma1/nfma+9FXd38W1BvZn95XoEbazele3ED252I3HR+QQqarNp5ggL6i9QT1Z7/1alPIXWUdaGma+7sY6yL3GTVVpvyeYuvpojOZGTpLag+R9/qK41tnpQ10ZlNX16/4WdIf/0ui6z7kUs/YKavck/F4cS5TfFIelmew/qumLbg15v/M9D2+X1oOXM/nK796DloUNgszvbHq6o9sp7BG0sUE5u7UHb62j1oK2NbcbdlFv2dNXfgza3JzHRy0zPP79t1cDK78u9o5J1edhTHuQ9/7Y6YSln7hyD9gpqdz7uk+KbTzf1ivuPQYvT3/NNd8WB7SoX9mb2l+sRNLD6dda/2e1tD1dUe+W9gjYWcJOhY1Bf0OYizWPQ1sY24q6/+n7jpw0fg3a2JyW7XKjPvmke5Cwzv2+qzuvsSaSzyJ4Dml2L3Yazd5tPdm/tncl266Q+BrXf2vWft76p5u4/iy+ul1iLqhV7szS3q/rGm7mzXFfQ1vnypf3Hc9m32RZv23sqatPMERbUW8CbDJ3FV2kD6/DP4kOVZON+Y4/prr203bN4u4w/R3J2+anzXfcyU+eaWnEokrnd6+aHWqjiSltxsu8puNkqqP3/6+Y33o+TjUt+LUHNGs8bK15762xsV7WwN7M32Seov/rqPOOyd7Pr1drroD0VtWnm6OlBvQXqydB10Dptex1+K3Q2dtOc6bzRrM3Wdl1O9urP3hzJ2XazyM+/uijP/toX6v19bfVLkjmZe/292yGb3yEyd1PJp+8uyp+anv9wkX32ru8YtClo/c8geLOI/dHk161C6oP488aK7a841dLedtULeynryV5BvdVvHvNzkK//6K7XhDfbYjL88kN1Fh+oqGaOvl28t0A12fglyauUIm1rHXmGP3/Xt7EV9pekXzeb1VvSrdJVrL89qeF2u5fF+xFuxAz7mnT8n947IOgLsbSHvO6a/+hREBTalFccBW6JQlAI8Mkc+fbddP2iIChAKhAUpEFQkAZBQRoEBWkQFKRBUJAGQUEaBAVpEBSkQVCQBkFBGgQFaRAUpEFQkAZBQRoEBWkQFKRBUJAGQUEaBAVpEBSkQVCQBkFBGgQFaRAUpEFQkAZBZ0N2CGOH70U3mTqpfDionEZBD/ujq4FusiMh58Mh5SQrSFcD3WRHQs4HuUBa6CZrodDxIejLo5usxWx9kAukhW6yFrP1QS6QFkOSPV2NOELFbH2QC6TFMEH/4eIYo93txGx9kAukxTBBLzersYZRma0PcoG0GCpoNYzbSzNbH+QCaTFc0I119OWHIxFoRgR9efYSdAxm64NcIC0QdIyCpANpoZusxWx9kAukhW6yFrP1QS6QFnsmW+16ksTNQ5MLpEWaZEGl3Ddq1U+gWDlaJE6GoNMPpAWCEuhhPoI+37gdee8RKIJOP5AWg5KtsuqnpJ4rogg6/UBaDEn2fFNpueq58Q5Bpx9Ii2G/JF2Xk+uenTyCTj+QFvSgBHqYi6D5MWjRhXIMOuNAWgxL9nTlzuJ7H/1A0OkH0oLroAR6QFCh6idQrBwtEJRADwgqVP0EipWjBYIS6AFBhaqfQLFytEBQAj0gqFD1EyhWjhYISqAHBBWqfgLFytECQQn0gKBC1U+gWDlaICiBHhBUqPoJFCtHCwQl0AOCClU/gWLlaIGgBHpAUKHqJ1CsHC0QlEAPCCpU/QSKlaMFghLoYT6CLl993DxeZNnZ7a7FyVU/gWLlaDEomfXz89vGO0YixclVP4Fi5WgxJJkdRGFpB0nizSLzDaTFMEGvy9ff8G6m+QbSYtguPu89V/SgMw+kxaBkT1evPtoudN13loSg0w+kxcBka/dupt7BOhF0+oG04DoogR4QVKj6CRQrR4s9k/UN5IWg0w+kRZpkDOQ1o0BasIsn0AOCClU/gWLlaDEsGQN5nUAgLQYlYyCvUwikxZBkDENzEoG0GHqzSAE3i8w3kBb0oAR6mIugDOR1EoG0GJaMgbxOIJAWXAcl0AOCClU/gWLlaIGgBHpAUKHqJ1CsHC0QlEAPCCpU/QSKlaMFgs4n0CEkav/0IOjeBSXy4aByGgXd7Q+CjiqWtA+HlJOsIAQdVyy/HDUf5AJpMR1BBZoRQV8eBB2jIOlAWiDoGAVJB9Li6IIqHDtK+yAXSIujC6pW/QSKlaMFghLoDkGFqp9AsXK0QFAC3SGoUPUTKFaOFghKoLu5CGpH+bAvWR7w6hu16idQrBwtBgtqn4gfME6SWvUTKFaOFkMFLdTc/cUNatVPoFg5WgwV9PHCCrr7q2/Uqp9AsXK0oAcl0N18BDW/j59vytOlXYqTq34CxcrRYmCy3NGz2/5XMyHoDAJpwXVQAt0hqFD1EyhWjhZ7Jtt9nCS16idQrBwt0iQL3mLsvlGrfgLFytGCXTyB7hBUqPoJFCtHi2HJ9hgnSa36CRQrR4tByfYZJ0mt+gkUK0eLIcn2GuVDrfoJFCtHi2E/de4xTpJa9RMoVo4W9KAEupuLoHuNk6RW/QSKlaPFsGR7jJOkVv0EipWjBddBCXSHoELVT6BYOVogKIHuEFSo+gkUK0cLL1l+BvTmftl3r/zg4ooP1KqfQLFytKiTrc9uV2/ue582Glpc+YFa9RMoVo4r7NgMNspchTeX3/tuRR5YXPWBWvUTKFZOuCHHogpifsc0gvb9iDmwuOoDteonUKyccEOORacHXfZehB9UXPWBWvUTKFZOuCHHon0MWv2aeWhx5Qdq1U+gWDnhhhyL5ll8Zp56T1Rc8YFa9RMoVk64IceC66AEukNQoeonUKyccEOOhXcWX12iOuAoFEGnHyjckGPhnSRl7v3J14dcq0fQ6QcKN+RYeJeZzu3f5kx+/ytNCDr9QOGGHIvGhXrD+tXHA67VI+j0A4UbciwaF+oNpgdF0FMOFG7IsQgcg5Y7+8OKKz9Qq34CxcoJN+RYtC/U553n8oBf4xF0+oHCDTkWXAcl0F1E0D1ukqvpHbFoR/YRtBjpY6fi5KqfQLFyOg2ZLUpGFbS8Ut+/g/eu5ffNhaDTD9RpSBFBl/np+/m23rF6XwM96KwDdRqyR9Bllp29P7t9+va96a5Wea9l7Sgmnq5+c2V+lHy6+pcL9+Pkuvzi2vzRZ1BvEPP70drcUb/tKv3TlfkWQWcdqNOQYUHNufQ6ywW1TqzObnMvLuuJp6t8YmW+dn+b60P5h+cHCHq9efzFR/vfFpZ2/Qg640CdhgwK6iRYGgMvq3GGX31sTuQzlX+76+xrM/9+gpoCnr69jQlq3hGKoLMO1GnIoKDu58ZSuLW9jzgXo5ooPKz+dtLUX/QZ1B/E/H60vNy+i9/YdXyGoHMO1GnIoKCrpqDljXDVRFjQ+oM+g7YEWZrjgy0n8SXPN/035CHo9AN1GnLnHnTjTaTvQZOAoNMP1GnI4IV6J9yqOqYs+qzmhCeodwxqD0q3exQIYo4/DbvdysRAXvMNFG7IDvVZfGGqO4MuJ9qCVmfxzzdv7vOdcLT8dpBS0L1uZer/LUyu+gkUK8cVFm/0ZZa9+m9zuu4GaC9/vSkmOoKW10Ht7z2/GbqLX9aK8eqbEw8Ubsgwh73mYxc6PWii4qoP1KqfQLFywg3Zxh6DHvgmr10YdpLEQF4nECjckB3WBz5fuSN1kKh8DOR1GoHCDTkW3s0i0cMJhqE5iUDhhhyLxs0iERjI6yQChRtyLBo3i0SgBz2JQOGGHAvvZpH4o3IM5HUKgToNedAjH22G3sBcr3K9wykZA3mdQKBOQ2b9sx0fbxe//WGOgcVVH6hVP4Fi5XQaUkPQIxUnV/0EipXTacgeQVvPdtQfuGdAiidClubIcVUfPtob4y8G/9SZCgSdfqBOQ4YFbT/b4X1gjgDLe0nM9Z7nm/ro0Qm6+3uSvVUyThKBgg0ZFDT8bIf/waa6q+nx81tvuWv38NKOeCdJjJNEoGBDBgXtPNvR/KC6n9ncB+9flHSC7n4m711mYpwkAgUbMixo+9mO5gfVEyFGVX+3vLegjJNEoJ6G3NKDbupb55sf1D3o07e/92+UO7gHZZykUw/UacieY9DQsx3VB9UTIblYX/pK7S0o4yQRqKchw78ktZ/taH5QncV798BZ9heUcZIItKUhu7Se7Wh+UD0Rsmmcwx8kaAoQdPqBwg25F/ZI9PGXSQ8aDwNBpx8o3JAD8Z4IWaW6cGlOj3pvUxpeXPGBWvUTKFZOuCGHUj4R8njh3jdXHMQOPoSsg7jTd/Pk8gF0N/Qg/IIEmhFBX57GdVBD6uugiwM4CR/kAoUbciwa10ENqX9JQtCpBQo35FjUQdwV0CG/428trvwAQacWKNyQY+EFsQeyya+DIujUAnUaMukjH0M5+mUmBJ1aoE5DZg8lIVvMyYv/oNGhoyb0BfEe2UxRXPUBgk4tUKchtwtqSCxlMMju61hvORBA0OkH6jSkhqA7XV9aZtml+eWqNxCCTj9QpyF7BPWGlWnv4s1DR0YVOwDN4+e/uyhemlgu8u37nQ8tvR40/lSnuZa/tL3n7i9uQNCpBeo0ZFhQf1iZrqDmGSU7fNKrj7mm7vW13iK739M55CTJ3ehn703Z/dU3CDq1QJ2GDAraGFamK+jlpvzj2l25XJn3KvtvAd+RYYKacp//tqEHnXOgTkMGBW0MitAVtLxn2Qpqx5k7u22Oo7Aj3irjT3VWvzL1/hNA0OkH6jTkFkGLO+m3C+r2uaWg/s33O+CdJO3wVOfKnb73vyUHQacfqNOQh/agTUH37UGP9VQngk4tUKchg78kRY5BG7t4M+eycQwq9FQngk4tULghO2w/i28IWgwl2xxPdkc6PehuT3XuPk4Sgk4tULghu2y9DtoQtByQuzEi9460j0H3e6qz/24CBJ1cIFfYHhb0MOQRuS7Ns3juZnqZgqQDhRtyf5IJmoIjCirw6AiC9rLloaOXFHSPcZKSCZqqHDUf5AKFG3IsyiDmofuo6PuMk4SgRyzndAR1Lx+NGLrXKB9ygiocKyDozrggTr0+60r2GidJTtBkgQREPxlBnXqxa/Tz6EHlAiUzPVE54YYciyGC7jVOkpwPBIqUE27IsRgk6D7jJKlVP4Fi5YQbciyGCbpjcf4HatVPoFg54YYcCwQl0CIk6LEZZlT1QFKWfKQ5teonUKwcLabzU6dAOacRSAsEJdACQYWqn0CxcrRAUAItEFSo+gkUK0cLBCXQAkGFqp9AsXK0QFACLRBUqPoJFCtHCwQl0AJBhaqfQLFytEBQAi0QVKj6CRQrRwsEJdACQYWqn0CxcrRAUAItEFSo+gkUK0cLBCXQYj6CVi/IGeH9oALlnEYgLQYlMy/IMW/IRdA5B9JiSDL3ZpHnmy1vskfQ6QfSYkiy8t1Myzf3CDrfQFoM70FzlucIOt9AWgw7Bi20fLrqe3oeQacfSIuhZ/FuJ/98g6CzDaQF10EJtEBQoeonUKwcLfZMxknSfANpkSbZljf1qlU/gWLlaMEunkALBBWqfgLFytFiWLI5DORFoEg5Wgy7UD+HgbwIFClHi71+6mQYmjkH0mKfm0U2DOQ150Ba0IMSaDEXQRnI6yQCaTEsGQN5nUAgLbgOSqAFggpVP4Fi5WiBoARaIKhQ9RMoVo4WCEqgBYIKVT+BYuVogaAEWiCoUPUTKFaOFghKoAWCClU/gWLlaIGgBFogqFD1EyhWjhYISqAFggpVP4Fi5WiBoARaIKhQ9RMoVo4WCEqgBYIKVT+BYuVogaAEWiCoUPUTKFaOFghKoAWCClU/gWLlaDEkWfnQ8ZbXhyHo9ANpMShZ79gJ/cXJVT+BYuVoMSzZ8835wOLkqp9AsXK0GJhsnV1v/R5Bpx9IC06SCLRAUKHqJ1CsHC0QlECLGQrKOEnzDaRFmmSMkzSjQFqwiyfQAkGFqp9AsXK0GHqhnnGSZh9Ii0HJGCfpFAJpMSQZo3ycRCAtht3NxDhJJxBIC3pQAi3mIijjJJ1EIC2GJWOcpBMIpAXXQQm0QFCh6idQrBwtEJRACwQVqn4CxcrRAkEJtEBQoeonUKwcLRCUQAsEFap+AsXK0QJBCbRAUKHqJ1CsHC0QlEALBBWqfgLFytECQQm0QFCh6idQrBwtEJRACwQVqn4CxcrRAkEJtEBQoeonUKwcLRCUQAsEFap+AsXK0QJBCbSYj6C8m+kEAmkxKBnvZjqFQFoMScabRU4ikBZDkvFuppMIpAU9KIEWcxGUdzOdRCAthiXj3UwnEEgLroMSaIGgQtVPoFg5WuyZjIG85htIizTJtgzkdRCpCiLQgHK00E0GsEFQECfxzSIAaUl8swhAWhL/1AmQlsQ3iwCkhR4UpEl8swhAWhLfLAKQFq6DgjQICtIgKEiDoCANgoI0CArSIChIg6AgDYKCNAgK0iAoSIOgIA2CgjQICtIgKEiDoCDNiIKus+zsNk1Rj79I8IiUfaY6yZMCq3Rbtkxxb7i7z/z88IJGYDxB13kbrtO049NVgmf4nm/yMKsUzWheXJVoy9ZJHl54/DzRP5cRGE1Q9wTeMsU/63WSN0k8XpgHrvreijaAp6tLs3kptizv+lIIOuVncEcTNJkP5gm+dC2QqOdLJOjqzW9TCLqa5t7dMp6gdreTyKx0gi4TlbRKIXpeR0mOQZdfpjq6fnlGE9R1VakO1VIJmuh56nUSH8xRUApBn65MIctpGoqgjXKSneo+3xxulnk7RpIe1DLRA1F28X4xCfeDh//TszWUTlB30D85ZnCStEkl6CrlcdrhPqyKlx8n8mqi15rmcJkpkaCrRCo4NRN16il60KSBXppZXKhPUvmPF6n6TyOV96K1g8s6vBDTDXCSNJSEPwimELTYo6aItEy3Y05zDJow0EvDzSIgDYKCNAgK0iAoSIOgIA2CgjQICtIgKEiDoCANgoI0CArSIChIg6AgDYKCNAgK0iAoSIOgIA2CgjQICtIgKEiDoCANgoI0CArSIChIg6AgDYKCNAgK0iDoFpbudU2dN/A9XXVedJTqNWjQAkG34N7c5d6gHQFBjwSCbqF4tdwu8iHokUDQLRSC2hfArtxAGU/fvs9e/cnu4tfl0BnmPZLvEfQ4IOgWvB7UDCtjXnFr9/f2GHSdXecT527kmnWyV51CEwTdQnkMeu5GjzPvybUTRlD3CuXcXfeC7SWCHgcE3UJxFn9ZHmLmLtrO0/zhvMz/dG935hj0SCDoFur3b6/LETdaguZTKwQ9Jgi6BU/Q0j960BcGQbdQC1pdmq8EbR2DJhmbE7og6Ba8ITasgPmZUCVofRZvvuIs/lgg6Bb8MWDMddB8Z14LynXQFwFBQRoEBWkQFKRBUJAGQUEaBAVpEBSkQVCQBkFBGgQFaRAUpEFQkAZBQRoEBWkQFKRBUJAGQUEaBAVpEBSkQVCQBkFBGgQFaRAUpEFQkOb/AYFoD6eQF+cPAAAAAElFTkSuQmCC" /><!-- --></p>
 <pre class="r"><code>print(tab_ols_21, caption.placement = &quot;top&quot;) #OLS coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS betas, Model 2} 
@@ -1266,7 +1180,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_ols_22, caption.placement = &quot;top&quot;) #OLS error var-covar</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS var-covar, Model 2} 
@@ -1284,7 +1198,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_bayes_A2, caption.placement = &quot;top&quot;) #Bayesian coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian coefficients, Model 2} 
@@ -1302,7 +1216,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_bayes_Sigma2, caption.placement = &quot;top&quot;) #Bayesian error var-covar</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian var-covar, Model 2} 
@@ -1320,7 +1234,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_GIR_21, caption.placement = &quot;top&quot;) #GIRF 1 coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 2} 
@@ -1341,7 +1255,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_GIR_22, caption.placement = &quot;top&quot;) #GIRF 2 coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 2} 
@@ -1612,7 +1526,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
 <pre class="r"><code>print(tab_ols_31, caption.placement = &quot;top&quot;) #OLS coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS betas, Model 3} 
@@ -1630,7 +1544,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_ols_32, caption.placement = &quot;top&quot;) #OLS error var-covar</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS var-covar, Model 3} 
@@ -1648,7 +1562,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_bayes_A3, caption.placement = &quot;top&quot;) #Bayesian coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian coefficients, Model 3} 
@@ -1666,7 +1580,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_bayes_Sigma3, caption.placement = &quot;top&quot;) #Bayesian error var-covar</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian var-covar, Model 3} 
@@ -1684,7 +1598,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_GIR_31, caption.placement = &quot;top&quot;) #GIRF 1 coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 3} 
@@ -1705,7 +1619,7 @@ round(bvar_fevd_gir, 2)</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code>print(tab_GIR_32, caption.placement = &quot;top&quot;) #GIRF 2 coefficients</code></pre>
 <pre><code>## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 3} 

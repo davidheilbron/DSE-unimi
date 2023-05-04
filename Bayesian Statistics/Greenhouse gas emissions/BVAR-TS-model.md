@@ -12,22 +12,7 @@ date: "2023-05-01"
 
 
 ```
-## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
-## ✔ ggplot2 3.4.0      ✔ purrr   1.0.0 
-## ✔ tibble  3.1.8      ✔ dplyr   1.0.10
-## ✔ tidyr   1.2.1      ✔ stringr 1.5.0 
-## ✔ readr   2.1.3      ✔ forcats 0.5.2 
-## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()
-```
-
-```
 ## Warning: package 'xts' was built under R version 4.2.3
-```
-
-```
-## Loading required package: zoo
 ```
 
 ```
@@ -35,52 +20,7 @@ date: "2023-05-01"
 ```
 
 ```
-## 
-## Attaching package: 'zoo'
-## 
-## The following objects are masked from 'package:base':
-## 
-##     as.Date, as.Date.numeric
-## 
-## 
-## ################################### WARNING ###################################
-## # We noticed you have dplyr installed. The dplyr lag() function breaks how    #
-## # base R's lag() function is supposed to work, which breaks lag(my_xts).      #
-## #                                                                             #
-## # Calls to lag(my_xts) that you enter or source() into this session won't     #
-## # work correctly.                                                             #
-## #                                                                             #
-## # All package code is unaffected because it is protected by the R namespace   #
-## # mechanism.                                                                  #
-## #                                                                             #
-## # Set `options(xts.warn_dplyr_breaks_lag = FALSE)` to suppress this warning.  #
-## #                                                                             #
-## # You can use stats::lag() to make sure you're not using dplyr::lag(), or you #
-## # can add conflictRules('dplyr', exclude = 'lag') to your .Rprofile to stop   #
-## # dplyr from breaking base R's lag() function.                                #
-## ################################### WARNING ###################################
-## 
-## Attaching package: 'xts'
-## 
-## The following objects are masked from 'package:dplyr':
-## 
-##     first, last
-```
-
-```
 ## Warning: package 'imputeTS' was built under R version 4.2.3
-```
-
-```
-## Registered S3 method overwritten by 'quantmod':
-##   method            from
-##   as.zoo.data.frame zoo 
-## 
-## Attaching package: 'imputeTS'
-## 
-## The following object is masked from 'package:zoo':
-## 
-##     na.locf
 ```
 
 ```
@@ -92,28 +32,7 @@ date: "2023-05-01"
 ```
 
 ```
-## 
-## Attaching package: 'tseries'
-## 
-## The following object is masked from 'package:imputeTS':
-## 
-##     na.remove
-```
-
-```
 ## Warning: package 'vars' was built under R version 4.2.3
-```
-
-```
-## Loading required package: MASS
-## 
-## Attaching package: 'MASS'
-## 
-## The following object is masked from 'package:dplyr':
-## 
-##     select
-## 
-## Loading required package: strucchange
 ```
 
 ```
@@ -121,22 +40,7 @@ date: "2023-05-01"
 ```
 
 ```
-## Loading required package: sandwich
-```
-
-```
 ## Warning: package 'sandwich' was built under R version 4.2.3
-```
-
-```
-## 
-## Attaching package: 'strucchange'
-## 
-## The following object is masked from 'package:stringr':
-## 
-##     boundary
-## 
-## Loading required package: urca
 ```
 
 ```
@@ -144,34 +48,11 @@ date: "2023-05-01"
 ```
 
 ```
-## Loading required package: lmtest
-## 
-## Attaching package: 'vars'
-## 
-## The following object is masked from 'package:MTS':
-## 
-##     VAR
-```
-
-```
 ## Warning: package 'bvartools' was built under R version 4.2.3
 ```
 
 ```
-## Loading required package: coda
-```
-
-```
 ## Warning: package 'coda' was built under R version 4.2.3
-```
-
-```
-## 
-## Attaching package: 'bvartools'
-## 
-## The following objects are masked from 'package:vars':
-## 
-##     fevd, irf
 ```
 
 
@@ -549,29 +430,29 @@ A <- matrix(A, k) # Transform mean vector into a matrix
 A <- round(A, 3) # Round values
 dimnames(A) <- list(dimnames(y)[[1]], dimnames(x)[[1]]) # Rename matrix dimensions
 
-A # Print
+round(A,2) # Print
 ```
 
 ```
 ##                   greenhouse_1.01 harvested_rice_1.01 permanent_crops_1.01
-## greenhouse_1                0.136               0.084                0.136
-## harvested_rice_1           -0.994               0.211                0.037
-## permanent_crops_1          -0.384               0.024               -0.203
-##                    const
-## greenhouse_1      -0.082
-## harvested_rice_1  -0.010
-## permanent_crops_1 -0.009
+## greenhouse_1                 0.14                0.08                 0.14
+## harvested_rice_1            -0.99                0.21                 0.04
+## permanent_crops_1           -0.38                0.02                -0.20
+##                   const
+## greenhouse_1      -0.08
+## harvested_rice_1  -0.01
+## permanent_crops_1 -0.01
 ```
 
 ```r
-tab_bayes_A1 <- xtable(round(A, 3), caption = "Bayesian coefficients, Model 1", label = "tab:tab_bayes_A1")
+tab_bayes_A1 <- xtable(round(A, 2), caption = "Bayesian coefficients, Model 1", label = "tab:tab_bayes_A1")
 
 Sigma <- rowMeans(draws_sigma) # Obtain means for every row
 Sigma <- matrix(Sigma, k) # Transform mean vector into a matrix
 Sigma <- round(Sigma, 2) # Round values
 dimnames(Sigma) <- list(dimnames(y)[[1]], dimnames(y)[[1]]) # Rename matrix dimensions
 
-Sigma # Print
+round(Sigma,3) # Print
 ```
 
 ```
@@ -778,7 +659,7 @@ print(tab_ols_11, caption.placement = "top") #OLS coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS betas, Model 1} 
@@ -805,7 +686,7 @@ print(tab_ols_12, caption.placement = "top") #OLS error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS var-covar, Model 1} 
@@ -832,7 +713,7 @@ print(tab_bayes_A1, caption.placement = "top") #Bayesian coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian coefficients, Model 1} 
@@ -859,7 +740,7 @@ print(tab_bayes_Sigma1, caption.placement = "top") #Bayesian error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian var-covar, Model 1} 
@@ -886,7 +767,7 @@ print(tab_GIR_11, caption.placement = "top") #GIRF 1 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 1} 
@@ -916,7 +797,7 @@ print(tab_GIR_12, caption.placement = "top") #GIRF 2 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:10 2023
+## % Thu May  4 20:35:01 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 1} 
@@ -1331,7 +1212,7 @@ print(tab_ols_21, caption.placement = "top") #OLS coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS betas, Model 2} 
@@ -1358,7 +1239,7 @@ print(tab_ols_22, caption.placement = "top") #OLS error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS var-covar, Model 2} 
@@ -1385,7 +1266,7 @@ print(tab_bayes_A2, caption.placement = "top") #Bayesian coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian coefficients, Model 2} 
@@ -1412,7 +1293,7 @@ print(tab_bayes_Sigma2, caption.placement = "top") #Bayesian error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian var-covar, Model 2} 
@@ -1439,7 +1320,7 @@ print(tab_GIR_21, caption.placement = "top") #GIRF 1 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 2} 
@@ -1469,7 +1350,7 @@ print(tab_GIR_22, caption.placement = "top") #GIRF 2 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:22 2023
+## % Thu May  4 20:35:13 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 2} 
@@ -1877,7 +1758,7 @@ print(tab_ols_31, caption.placement = "top") #OLS coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS betas, Model 3} 
@@ -1904,7 +1785,7 @@ print(tab_ols_32, caption.placement = "top") #OLS error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS var-covar, Model 3} 
@@ -1931,7 +1812,7 @@ print(tab_bayes_A3, caption.placement = "top") #Bayesian coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian coefficients, Model 3} 
@@ -1958,7 +1839,7 @@ print(tab_bayes_Sigma3, caption.placement = "top") #Bayesian error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian var-covar, Model 3} 
@@ -1985,7 +1866,7 @@ print(tab_GIR_31, caption.placement = "top") #GIRF 1 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 3} 
@@ -2015,7 +1896,7 @@ print(tab_GIR_32, caption.placement = "top") #GIRF 2 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 08:16:39 2023
+## % Thu May  4 20:35:25 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 3} 
