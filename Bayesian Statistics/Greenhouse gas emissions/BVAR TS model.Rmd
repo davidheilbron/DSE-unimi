@@ -525,12 +525,12 @@ plot(bvar_model)
 GIR_1 <- bvartools::irf(bvar_model, impulse = "energy_imp_dep_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
 round(GIR_1, 2)
 tab_GIR_21 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 2", label = "tab:tab_GIR_21")
-plot(GIR_1, main = "GIRF, Impulse = harvested_rice, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+plot(GIR_1, main = "GIRF, Impulse = energy_imp_dep_1, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 
 GIR_2 <- bvartools::irf(bvar_model, impulse = "oil_imports_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
 round(GIR_2, 2)
 tab_GIR_22 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 2", label = "tab:tab_GIR_22")
-plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+plot(GIR_2, main = "GIRF, Impulse = oil_imports_1, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ```{r Error Variance Decomposition model 2}
@@ -675,7 +675,7 @@ summary(bvar_model)
 
 ```
 
-```{r Chain analysis}
+```{r Chain analysis Model 3}
 str(draws_a)
 for (i in 1:nrow(draws_a)){
   par(mfrow = c(1, 2))
@@ -692,12 +692,12 @@ plot(bvar_model)
 GIR_1 <- bvartools::irf(bvar_model, impulse = "GDP_pc_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
 round(GIR_1, 2)
 tab_GIR_31 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 3", label = "tab:tab_GIR_31")
-plot(GIR_1, main = "GIRF, Impulse = harvested_rice, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+plot(GIR_1, main = "GIRF, Impulse = GDP_pc_1, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 
 GIR_2 <- bvartools::irf(bvar_model, impulse = "fertilizer_1", response = "greenhouse_1", n.ahead = 5, type = "gir")
 round(GIR_2, 2)
 tab_GIR_32 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 3", label = "tab:tab_GIR_32")
-plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+plot(GIR_2, main = "GIRF, Impulse = fertilizer_1, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ```{r Error Variance Decomposition model 3}

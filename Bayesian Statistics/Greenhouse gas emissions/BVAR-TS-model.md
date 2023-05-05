@@ -659,7 +659,7 @@ print(tab_ols_11, caption.placement = "top") #OLS coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:01 2023
+## % Fri May  5 07:43:58 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS betas, Model 1} 
@@ -686,7 +686,7 @@ print(tab_ols_12, caption.placement = "top") #OLS error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:01 2023
+## % Fri May  5 07:43:58 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS var-covar, Model 1} 
@@ -713,7 +713,7 @@ print(tab_bayes_A1, caption.placement = "top") #Bayesian coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:01 2023
+## % Fri May  5 07:43:58 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian coefficients, Model 1} 
@@ -740,7 +740,7 @@ print(tab_bayes_Sigma1, caption.placement = "top") #Bayesian error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:01 2023
+## % Fri May  5 07:43:58 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian var-covar, Model 1} 
@@ -767,7 +767,7 @@ print(tab_GIR_11, caption.placement = "top") #GIRF 1 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:01 2023
+## % Fri May  5 07:43:58 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 1} 
@@ -797,7 +797,7 @@ print(tab_GIR_12, caption.placement = "top") #GIRF 2 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:01 2023
+## % Fri May  5 07:43:58 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 1} 
@@ -1147,7 +1147,7 @@ round(GIR_1, 2)
 
 ```r
 tab_GIR_21 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 2", label = "tab:tab_GIR_21")
-plot(GIR_1, main = "GIRF, Impulse = harvested_rice, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+plot(GIR_1, main = "GIRF, Impulse = energy_imp_dep_1, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ![](BVAR-TS-model_files/figure-html/IRF Analysis model 2-1.png)<!-- -->
@@ -1173,7 +1173,7 @@ round(GIR_2, 2)
 
 ```r
 tab_GIR_22 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 2", label = "tab:tab_GIR_22")
-plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+plot(GIR_2, main = "GIRF, Impulse = oil_imports_1, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ![](BVAR-TS-model_files/figure-html/IRF Analysis model 2-2.png)<!-- -->
@@ -1212,7 +1212,7 @@ print(tab_ols_21, caption.placement = "top") #OLS coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:13 2023
+## % Fri May  5 07:44:09 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS betas, Model 2} 
@@ -1239,7 +1239,7 @@ print(tab_ols_22, caption.placement = "top") #OLS error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:13 2023
+## % Fri May  5 07:44:09 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS var-covar, Model 2} 
@@ -1266,7 +1266,7 @@ print(tab_bayes_A2, caption.placement = "top") #Bayesian coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:13 2023
+## % Fri May  5 07:44:09 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian coefficients, Model 2} 
@@ -1293,7 +1293,7 @@ print(tab_bayes_Sigma2, caption.placement = "top") #Bayesian error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:13 2023
+## % Fri May  5 07:44:09 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian var-covar, Model 2} 
@@ -1320,7 +1320,7 @@ print(tab_GIR_21, caption.placement = "top") #GIRF 1 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:13 2023
+## % Fri May  5 07:44:09 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 2} 
@@ -1350,7 +1350,7 @@ print(tab_GIR_22, caption.placement = "top") #GIRF 2 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:13 2023
+## % Fri May  5 07:44:09 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 2} 
@@ -1665,13 +1665,13 @@ for (i in 1:nrow(draws_a)){
 }
 ```
 
-![](BVAR-TS-model_files/figure-html/Chain analysis-1.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis-2.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis-3.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis-4.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis-5.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis-6.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis-7.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis-8.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis-9.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis-10.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis-11.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis-12.png)<!-- -->
+![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-1.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-2.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-3.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-4.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-5.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-6.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-7.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-8.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-9.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-10.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-11.png)<!-- -->![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-12.png)<!-- -->
 
 ```r
 plot(bvar_model)
 ```
 
-![](BVAR-TS-model_files/figure-html/Chain analysis-13.png)<!-- -->
+![](BVAR-TS-model_files/figure-html/Chain analysis Model 3-13.png)<!-- -->
 
 
 ```r
@@ -1695,7 +1695,7 @@ round(GIR_1, 2)
 
 ```r
 tab_GIR_31 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 3", label = "tab:tab_GIR_31")
-plot(GIR_1, main = "GIRF, Impulse = harvested_rice, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+plot(GIR_1, main = "GIRF, Impulse = GDP_pc_1, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ![](BVAR-TS-model_files/figure-html/IRF Analysis model 3-1.png)<!-- -->
@@ -1721,7 +1721,7 @@ round(GIR_2, 2)
 
 ```r
 tab_GIR_32 <- xtable(round(GIR_1, 3), caption = "GIRF betas, Model 3", label = "tab:tab_GIR_32")
-plot(GIR_2, main = "GIRF, Impulse = permanent_crops, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
+plot(GIR_2, main = "GIRF, Impulse = fertilizer_1, Response = greenhouse gas", xlab = "Periods ahead", ylab = "Response")
 ```
 
 ![](BVAR-TS-model_files/figure-html/IRF Analysis model 3-2.png)<!-- -->
@@ -1758,7 +1758,7 @@ print(tab_ols_31, caption.placement = "top") #OLS coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:25 2023
+## % Fri May  5 07:44:21 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS betas, Model 3} 
@@ -1785,7 +1785,7 @@ print(tab_ols_32, caption.placement = "top") #OLS error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:25 2023
+## % Fri May  5 07:44:21 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{OLS var-covar, Model 3} 
@@ -1812,7 +1812,7 @@ print(tab_bayes_A3, caption.placement = "top") #Bayesian coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:25 2023
+## % Fri May  5 07:44:21 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian coefficients, Model 3} 
@@ -1839,7 +1839,7 @@ print(tab_bayes_Sigma3, caption.placement = "top") #Bayesian error var-covar
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:25 2023
+## % Fri May  5 07:44:21 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Bayesian var-covar, Model 3} 
@@ -1866,7 +1866,7 @@ print(tab_GIR_31, caption.placement = "top") #GIRF 1 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:25 2023
+## % Fri May  5 07:44:21 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 3} 
@@ -1896,7 +1896,7 @@ print(tab_GIR_32, caption.placement = "top") #GIRF 2 coefficients
 
 ```
 ## % latex table generated in R 4.2.2 by xtable 1.8-4 package
-## % Thu May  4 20:35:25 2023
+## % Fri May  5 07:44:21 2023
 ## \begin{table}[ht]
 ## \centering
 ## \caption{GIRF betas, Model 3} 
