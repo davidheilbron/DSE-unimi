@@ -255,13 +255,13 @@ x <- t(bmodel$data$Z)
 # OLS estimation, Model 1
 
 ```{r OLS model 1}
-beta_ols <- tcrossprod(y, x) %*% solve(tcrossprod(x)) # Calculate estimates
+beta_ols <- tcrossprod(y, x) %*% solve(tcrossprod(x)) # Calculate estimates of the vector of coefficients
 round(beta_ols, 3) # Round estimates and print
 tab_ols_11 <- xtable(round(beta_ols, 3), caption = "OLS betas, Model 1", label = "tab:tab_ols_11")
 
 
 e_ols <- y - beta_ols %*% x
-e_sigma_ols <- tcrossprod(e_ols) / (ncol(y) - nrow(x))
+e_sigma_ols <- tcrossprod(e_ols) / (ncol(y) - nrow(x)) #Variance covariance matrix
 round(e_sigma_ols, 2)
 tab_ols_12 <- xtable(round(e_sigma_ols, 2), caption = "OLS var-covar, Model 1", label = "tab:tab_ols_12")
 ```
@@ -290,7 +290,7 @@ u_sigma_df_post <- t + u_sigma_df_prior # Posterior degrees of freedom
 ```
 
 ```{r Initial Values model 1}
-u_sigma_i <- solve(e_sigma_ols) #Inverse error variance-covariance
+u_sigma_i <- solve(e_sigma_ols) #Inverse variance-covariance matrix
 
 # Data containers for Gibss sampler
 draws_a <- matrix(NA, m, store)
