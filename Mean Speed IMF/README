@@ -1,5 +1,0 @@
-In this small project I tried to replicate the results of:
-Moszoro, Mariano and Mauricio Soto, 2022, “Road Quality and Mean Speed Score,” IMF Working Papers 2022/095 (Washington: International Monetary Fund).
-The scope was a bit different, as I focused only in Italy instead of producing a country-wise comparison.
-I selected the first 100 Italian cities by population, got their distances and travelling time (by car) between each other using the Google Maps Distance API.
-Results of the measures used in the paper (Mean Speed, Geometric Mean Speed and Adjusted Mean Speed) are graphed in three different maps.
